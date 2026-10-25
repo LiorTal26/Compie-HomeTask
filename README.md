@@ -2,11 +2,11 @@
 
 One Flask application serves HTML/CSS, handles add/delete forms, and accesses DynamoDB. No browser JavaScript, Node.js, npm, Docker Compose, or standalone scripts directory is needed.
 
-**Verified on October 25, 2026:** the application is deployed on AWS. A GitHub Actions release built and tested the image, pushed it to ECR, replaced the private EC2 instance, and passed the public database health check. Both Terraform roots subsequently reported no changes.
+**Verified on October 25, 2026:** a push to `main` automatically built and tested the image, pushed it to ECR, refreshed the private EC2 instance, and served the pushed commit with database health `ok`. Both Terraform roots subsequently reported no changes.
 
 Live application: [Items Board](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com). The environment is temporary and may be removed after review.
 
-The successful [Application run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40201715332) was manually dispatched. Push-based deployment is configured but was not separately demonstrated. See the [evidence index](evidence/README.md) for results and verification limits.
+Successful push-triggered runs: [Application](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) and [Infrastructure](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491). The deployed release is `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`; existing demo items survived the instance replacement. See the [evidence index](evidence/README.md) for results and verification limits.
 
 ## Project
 
@@ -214,8 +214,17 @@ terraform -chdir=infra/dev output
 
 ## Releases and rollback
 
-- App changes on `main` build, run behavior checks and real DynamoDB Local operations, push to ECR, and refresh the ASG.
-- Infrastructure changes produce a plan. Manual dispatch applies the saved plan from that run.
+| Workflow | Trigger | Result |
+|---|---|---|
+| Application | Push to `main` changing `app.py`, templates, static files, tests, requirements, Dockerfile, `.dockerignore`, or the Application workflow; alternatively Run workflow in `release` mode. | Build and test, push to ECR, update the image digest, refresh the ASG, then verify `/`, database health, and the running commit. |
+| Infrastructure | Push to `main` changing `infra/**` or the Infrastructure workflow; alternatively Run workflow with `plan` or `apply`. | Format/validate and plan `infra/dev`. Apply runs only for manual `operation: apply`, using the plan generated in that same job. |
+
+Use `main` when manually dispatching either workflow. README/evidence-only commits skip both automatic workflows. Unpushed local commits do not start Actions.
+
+The Application summary links to the live site and records the verified release commit, ECR digest, and database health. Once AWS bootstrap and repository variables are configured, a matching push performs the release without AWS console steps.
+
+The earlier Infrastructure failure was a missing `secretsmanager:GetResourcePolicy` permission needed by Terraform's secret data source. Bootstrap now grants that metadata read on the one app secret, while both secret-value APIs remain explicitly denied. Compare the [earlier failed run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40202252740) with the [successful no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491). Detailed new AWS snapshots and logs are supplied only in the submission ZIP.
+
 - Both workflows share a concurrency group. Avoid local applies during a workflow deployment.
 - ECR tags include commit/run/attempt and are immutable. Instances pull an image digest.
 - The pipeline owns `/compie/dev/release-image`; Terraform narrowly ignores changes to its value. EC2 startup reads it and launches the container through systemd.
@@ -279,7 +288,7 @@ Repository write access remains security-sensitive because deployed code execute
 
 **Local operator access:** the default CLI profile and named profile `compie-operator` now assume a scoped read-only role with one-hour sessions. A source IAM user, `compie-operator-source`, can only assume that role. Its access key is stored in the local AWS credentials file outside this repository; no console login was created. This account-access identity is separate from the assignment's Terraform-managed runtime and CI roles.
 
-The original root credentials remain in the explicitly named `compie-root-bootstrap` profile and have not been retired. Routine inspections now use the non-root role, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). Broader local write/delete permissions were rejected by automatic approval review; use the existing Infrastructure workflow for dev changes.
+The original root credentials remain in the explicitly named `compie-root-bootstrap` profile and have not been retired. Routine inspections now use the non-root role, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). Use the existing Infrastructure workflow for dev changes; this local profile has no provisioning or deletion permissions.
 
 ```powershell
 aws sts get-caller-identity
@@ -312,7 +321,7 @@ If already ALARM, wait for healthy metrics to restore OK before testing that tra
 
 ## Submission and teardown
 
-The saved evidence covers the live page and database health, a manually dispatched release, EC2 replacement, private addressing, CI secret-access denial, KMS settings, CloudWatch logs, SNS/SQS delivery, and final Terraform plans with no changes. Rollback and preservation of a specific AWS record across replacement were not separately exercised. The exact verification scope is recorded in [the validation summary](evidence/validation-summary.md).
+The saved evidence covers the live page and database health, a push-triggered release, EC2 replacement, preservation of existing database items, private addressing, CI secret-access denial, KMS settings, CloudWatch logs, SNS/SQS delivery, and final Terraform plans with no changes. Manual rollback remains unexercised. The exact verification scope is recorded in [the validation summary](evidence/validation-summary.md).
 
 Commit source and sanitized evidence, then package tracked files with a portable copy of Git history:
 
@@ -324,9 +333,12 @@ git archive --format=zip --output=output/compie-devops-submission.zip HEAD
 git bundle create output/git-history.bundle main
 git bundle verify output/git-history.bundle
 Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/compie-devops-submission.zip -Update
+if (Test-Path -LiteralPath output/submission-evidence) {
+    Compress-Archive -Path output/submission-evidence/* -DestinationPath output/compie-devops-submission.zip -Update
+}
 ```
 
-The ZIP contains the committed source, evidence, and `git-history.bundle`. After extracting, reviewers can restore the repository with `git clone -b main ./git-history.bundle review-copy`. The bundle preserves commit history without copying this machine's Git configuration.
+The ZIP contains committed public source/evidence, `git-history.bundle`, and any local submission-evidence overlay. New detailed AWS verification files are kept in the ignored `output/submission-evidence` folder and added only to the ZIP. After extracting, reviewers can restore the public repository history with `git clone -b main ./git-history.bundle review-copy`; retain the ZIP's evidence directory for the private snapshots. The bundle does not copy this machine's Git configuration.
 
 Credentials, Terraform state and binary plans, tools, local configuration, and the assignment PDF are excluded. The evidence includes text output from Terraform plans, which contains no state file or secret value. Inspect the ZIP before submission.
 

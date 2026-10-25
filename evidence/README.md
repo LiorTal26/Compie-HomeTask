@@ -10,7 +10,7 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 | [ASG overview](ASG%20PROOF.png) | Desired capacity one, limits one to two, and a healthy running instance. |
 | [Replacement activity](ASG%20REPLACMENT%20PROOF%20FROM%20CD.png) | New instance launched before the old instance was terminated in response to Instance Refresh. |
 | [Dev apply](terraform%20apply%20output%20proof.png) | Local Terraform apply completed with 40 resources added. |
-| [Bootstrap plan](terraform-bootstrap-plan.txt), [dev plan](terraform-dev-plan.txt) | Final plans both exited zero and reported no changes. These are text results, not state or binary plan files. |
+| [Bootstrap plan](terraform-bootstrap-plan.txt), [dev plan](terraform-dev-plan.txt) | Earlier plans both reported no changes. These are text results, not state or binary plan files. |
 | [Security checks](security-checks.json) | No instance public IP, enabled DynamoDB KMS encryption, an enabled AWS-managed configuration key, and simulated CI secret-access denial. |
 | [Networking and compute checks](network-compute-checks.json) | Live VPC/subnet routing, security groups, private EC2, public ALB, launch-template reference, ASG capacity, and healthy target. |
 | [Image, config, and IAM checks](image-config-iam-checks.json) | ECR release digest, secret metadata, instance profile, OIDC trust, attached policies, permission simulations, and the root operator follow-up. No secret values are included. |
@@ -27,3 +27,7 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 The alarm JSON files were decoded from the SQS message bodies supplied by the operator. The ALARM occurred during initial provisioning because two metric periods had no data; recovery followed a healthy target. These messages prove delivery of the initial alarm and recovery. They are not the later forced test message with reason `Assignment notification test`, and do not demonstrate a deliberate application outage.
 
 Screenshots and command output retain resource names, account IDs, and ARNs for traceability. They contain no application configuration values, AWS credentials, GitHub tokens, Terraform state, or assignment PDF.
+
+The public files retain earlier snapshots. Latest public CI results: [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) and [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491), both successful from a push of `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
+
+New detailed AWS snapshots, logs, and item-ID comparisons are supplied only in the local submission ZIP. Its evidence directory overlays these public snapshots.

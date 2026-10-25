@@ -1,37 +1,29 @@
-# AWS validation — October 25, 2026
+# Validation summary — October 25, 2026
 
-Account: `108782097005`. Region: `il-central-1`. Environment: `compie-dev`.
-
-Application: http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com
-
-Deployed commit: `31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1`.
+Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
 
 | Check | Result |
 |---|---|
-| Live application | Public page screenshot shows the Flask interface and a stored demo record. |
-| Database health | Fresh `/health` response returned HTTP 200, `database: ok`, and the deployed commit. |
-| Database configuration | [Live checks](database-checks.json) show an active `PAY_PER_REQUEST` table and the intended gateway-endpoint and application-role restrictions. |
-| Database privacy | [Non-root operator queries](database-operator-probe.json) outside the endpoint returned an explicit resource-policy denial, including with temporary COUNT permission. The audit permission was removed. The separate root comparison succeeded and remains recorded. |
-| Application delivery | [Run 40201715332](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40201715332) succeeded from manual dispatch on `main`. Build, behavior checks, real DynamoDB Local CRUD, OIDC, ECR push, refresh, and public verification all passed. |
-| Instance replacement | ASG activity records successful launch of `i-03754e3b267dd4806` followed by termination of `i-02b32f36f989113b7`, both caused by Instance Refresh. Desired capacity returned to one. |
-| Private compute | The running instance has private address `10.42.11.22` and no public IP. |
-| Networking and ASG | [Live checks](network-compute-checks.json) record public/private subnet routes, security-group rules, an internet-facing ALB, ASG capacity `1/1/2`, launch-template reference, and a healthy `/health` target. |
-| CI separation | IAM simulation returned `explicitDeny` for `secretsmanager:GetSecretValue` for both CI roles. |
-| Image and configuration | [Audit evidence](image-config-iam-checks.json) records the release image in ECR, an active secret version, role/profile configuration, and permission simulations. Source inspection confirms AWS-mode configuration is fetched from Secrets Manager at application startup. |
-| Encryption | DynamoDB reports enabled KMS encryption. The configuration key is AWS-managed and enabled; the secret uses the default `aws/secretsmanager` key because Terraform omits `kms_key_id`. |
-| Logs | Saved CloudWatch request records and cloud-init/package installation output. |
-| Notifications | Operator-supplied SQS bodies record the initial missing-metric ALARM and subsequent recovery to OK. |
-| Infrastructure drift | Final bootstrap and dev plans both exited zero with no changes. |
+| Application CI/CD | [Run 40211715134](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) succeeded automatically from a push to `main`: build, unit checks, real DynamoDB Local CRUD, OIDC, ECR push, ASG refresh, and live verification. |
+| Infrastructure CI | [Run 40211715491](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491) passed formatting, validation, OIDC, backend initialization, and a no-change dev plan. Apply was skipped for this push event. |
+| Live application | `/` and `/health` returned HTTP 200; the health response matched the pushed commit and reported `database: ok`. |
+| Release and persistence | The replacement completed successfully, its target was healthy, and existing demo records remained after replacement. |
+| Private compute | The replacement EC2 instance has no public IP. |
+| IAM repair | Added only `secretsmanager:GetResourcePolicy` on the app configuration secret. Secret-value API denial remains unchanged. |
+| Logs and drift | New-version request logs were present in CloudWatch. Post-repair bootstrap and dev plans reported no changes. |
+| Credentials | Source and evidence were scanned for credential patterns. Credential files, state, binary plans, local config, and the assignment PDF are excluded from the submission package. |
+
+## Evidence scope
+
+The public repository contains earlier sanitized snapshots and links to the latest public workflow runs. New detailed AWS resource snapshots, logs, and database item-ID comparisons are kept only in the local submission ZIP. The ZIP overlays those private evidence files onto the public source checkout and includes public main-branch Git history.
 
 ## Verification limits
 
-- Push-triggered deployment is configured; the recorded end-to-end release used manual dispatch.
-- Manual rollback is implemented and documented, but was not exercised.
-- Local record persistence across an application restart passed. Preservation of a specific AWS item across the EC2 refresh was not separately recorded.
-- The outside-endpoint denial test passed for the non-root operator. The earlier root comparison succeeded; this evidence does not establish that root data access is blocked.
-- The replacement evidence demonstrates a deployment refresh. It does not establish recovery from an injected instance failure or a measured zero-downtime guarantee.
-- The Infrastructure workflow definition was validated locally. The recorded dev apply ran through the local Terraform CLI.
-- The captured notifications do not contain the later forced-test reason. Their provenance is documented in the evidence index.
-- The default local CLI now assumes the read-only operator role. Existing root credentials remain under `compie-root-bootstrap` and have not been retired. Local provisioning/deletion permissions were not granted; dev infrastructure changes use the existing CI role.
+- Manual rollback is implemented and documented but was not exercised.
+- Infrastructure manual-apply mode was not exercised; the initial dev apply used the local Terraform CLI.
+- A rolling replacement was demonstrated; an injected instance failure and measured zero-downtime guarantee were not tested.
+- Root credentials remain in the explicitly named bootstrap profile. Routine CLI inspection uses the read-only operator role.
+- The earlier root database comparison succeeded outside the VPC; the resource-policy denial test passed for the non-root operator.
+- Captured alarm messages demonstrate initial ALARM/recovery delivery rather than the later forced-test reason.
 
-The environment remains provisioned. This evidence pass performed no Terraform apply or destroy. The account-access setup created a read-only operator user/role and local CLI profiles; temporary audit roles/policies were removed.
+The environment remains provisioned. The CI repair applied one IAM metadata-read change without creating or deleting resources. The push-triggered Application workflow performed the instance refresh. No Terraform destroy was performed.
