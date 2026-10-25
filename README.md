@@ -180,7 +180,7 @@ git add .
 git commit -m "Document verified AWS release and submission evidence"
 New-Item -ItemType Directory -Path output -Force
 git archive --format=zip --output=output/compie-devops-submission.zip HEAD
-git bundle create output/git-history.bundle --all
+git bundle create output/git-history.bundle main
 git bundle verify output/git-history.bundle
 Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/compie-devops-submission.zip -Update
 ```
