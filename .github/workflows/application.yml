@@ -1,0 +1,165 @@
+name: Application
+
+on:
+  push:
+    branches: [main]
+    paths: ['app.py', 'templates/**', 'static/**', 'tests/**', 'requirements.txt', 'Dockerfile', '.dockerignore', '.github/workflows/application.yml']
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Release, publish the first image before provisioning, or roll back
+        type: choice
+        options: [release, bootstrap, rollback]
+        default: release
+      image_digest:
+        description: 'Rollback only: an existing sha256:... image digest'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: compie-dev-write
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'il-central-1' }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'il-central-1' }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  APPLICATION_URL: ${{ vars.APPLICATION_URL }}
+  DEPLOY_MODE: ${{ inputs.mode || 'release' }}
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validate settings
+        env:
+          ROLE_ARN: ${{ vars.APPLICATION_ROLE_ARN }}
+          ROLLBACK_DIGEST: ${{ inputs.image_digest }}
+        run: |
+          test -n "$ROLE_ARN" && test -n "$ECR_REPOSITORY"
+          if [ "$DEPLOY_MODE" = rollback ]; then
+            [[ "$ROLLBACK_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          fi
+      - name: Build and test the Flask container
+        if: env.DEPLOY_MODE != 'rollback'
+        run: |
+          docker build --platform linux/amd64 --build-arg "APP_VERSION=$GITHUB_SHA" -t compie:test .
+          docker run --rm --entrypoint python -v "$PWD/tests:/app/tests:ro" compie:test -m unittest discover -s tests -v
+          docker network create compie-test
+          docker run -d --name compie-db --network compie-test amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb
+          docker run -d --name compie-app --network compie-test -p 127.0.0.1:8080:8080 \
+            --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+            -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 compie:test
+          docker exec compie-app flask --app app:create_app init-local-db
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:8080/health; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://localhost:8080/health | jq -e --arg version "$GITHUB_SHA" '.database == "ok" and .version == $version'
+          docker exec compie-app python -c "
+          import re
+          from app import create_app
+          client = create_app().test_client()
+          assert client.post('/items', data={'text': 'Pipeline database check'}).status_code == 303
+          page = client.get('/').get_data(as_text=True)
+          assert 'Pipeline database check' in page
+          item_id = re.search('data-item-id=\"([^\"]+)\"', page).group(1)
+          assert client.post('/items/' + item_id + '/delete').status_code == 303
+          assert 'Pipeline database check' not in client.get('/').get_data(as_text=True)
+          print('PASS: real DynamoDB Local create, read, and delete.')
+          "
+      - name: Container diagnostics
+        if: failure() && env.DEPLOY_MODE != 'rollback'
+        run: |
+          docker logs compie-app || true
+          docker logs compie-db || true
+      - name: Stop test containers
+        if: always() && env.DEPLOY_MODE != 'rollback'
+        run: |
+          docker rm -f compie-app compie-db || true
+          docker network rm compie-test || true
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.APPLICATION_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: compie-app-${{ github.run_id }}
+      - name: Push or select image
+        env:
+          ROLLBACK_DIGEST: ${{ inputs.image_digest }}
+        run: |
+          registry=$(printf '%s' "$ECR_REPOSITORY" | cut -d/ -f1)
+          repo_name=$(printf '%s' "$ECR_REPOSITORY" | cut -d/ -f2-)
+          if [ "$DEPLOY_MODE" = rollback ]; then
+            aws ecr describe-images --repository-name "$repo_name" --image-ids "imageDigest=$ROLLBACK_DIGEST" >/dev/null
+            digest="$ROLLBACK_DIGEST"
+          else
+            tag="$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            aws ecr get-login-password | docker login --username AWS --password-stdin "$registry"
+            docker tag compie:test "$ECR_REPOSITORY:$tag"
+            docker push "$ECR_REPOSITORY:$tag"
+            digest=$(aws ecr describe-images --repository-name "$repo_name" --image-ids "imageTag=$tag" --query 'imageDetails[0].imageDigest' --output text)
+          fi
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "IMAGE_URI=$ECR_REPOSITORY@$digest" >> "$GITHUB_ENV"
+      - name: Release through ASG Instance Refresh
+        run: |
+          asg=compie-dev-asg
+          parameter=/compie/dev/release-image
+          count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names "$asg" --query 'length(AutoScalingGroups)' --output text)
+          if [ "$DEPLOY_MODE" = bootstrap ]; then
+            test "$count" = 0
+          else
+            test "$count" = 1
+            test -n "$APPLICATION_URL"
+            status=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name "$asg" --query 'InstanceRefreshes[0].Status' --output text)
+            case "$status" in Pending|InProgress|Baking|Cancelling|RollbackInProgress) echo "Another refresh is active."; exit 1;; esac
+          fi
+          previous=$(aws ssm get-parameter --name "$parameter" --query Parameter.Value --output text)
+          printf '### Deployment\n\nPrevious image: %s\n\nRequested image: %s\n' "$previous" "$IMAGE_URI" >> "$GITHUB_STEP_SUMMARY"
+          aws ssm put-parameter --name "$parameter" --type String --value "$IMAGE_URI" --overwrite
+          if [ "$DEPLOY_MODE" = bootstrap ]; then
+            echo "Initial image published. Apply infra/dev next." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if ! refresh_id=$(aws autoscaling start-instance-refresh --auto-scaling-group-name "$asg" \
+            --preferences '{"MinHealthyPercentage":100,"MaxHealthyPercentage":200,"InstanceWarmup":60,"SkipMatching":false}' \
+            --query InstanceRefreshId --output text); then
+            aws ssm put-parameter --name "$parameter" --type String --value "$previous" --overwrite
+            exit 1
+          fi
+          for attempt in $(seq 1 90); do
+            status=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name "$asg" --instance-refresh-ids "$refresh_id" --query 'InstanceRefreshes[0].Status' --output text)
+            echo "Refresh: $status"
+            case "$status" in
+              Successful) break;;
+              Failed|Cancelled|RollbackFailed|RollbackSuccessful)
+                aws autoscaling describe-scaling-activities --auto-scaling-group-name "$asg" --max-items 5
+                echo "Recover using rollback mode and the previous image digest in the summary."
+                exit 1;;
+            esac
+            sleep 10
+          done
+          if [ "$status" != Successful ]; then
+            aws autoscaling cancel-instance-refresh --auto-scaling-group-name "$asg" || true
+            echo "Refresh timed out. Use manual rollback."
+            exit 1
+          fi
+      - name: Verify public page and DB health
+        if: env.DEPLOY_MODE != 'bootstrap'
+        run: |
+          curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 3 "$APPLICATION_URL/" -o /tmp/page.html
+          grep -q 'Your items' /tmp/page.html
+          curl --fail --silent --show-error "$APPLICATION_URL/health" > /tmp/health.json
+          jq -e '.database == "ok"' /tmp/health.json
+          if [ "$DEPLOY_MODE" != rollback ]; then
+            jq -e --arg version "$GITHUB_SHA" '.version == $version' /tmp/health.json
+          fi

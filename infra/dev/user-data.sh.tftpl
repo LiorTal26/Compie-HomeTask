@@ -1,0 +1,83 @@
+#!/bin/bash
+set -euo pipefail
+exec > >(tee -a /var/log/compie-bootstrap.log) 2>&1
+export AWS_DEFAULT_REGION='${region}'
+
+retry() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    if "$@"; then return 0; fi
+    sleep 10
+  done
+  return 1
+}
+retry dnf install -y docker amazon-cloudwatch-agent
+systemctl enable --now docker amazon-ssm-agent
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/compie.json <<'CWCONFIG'
+{
+  "agent": { "region": "${region}" },
+  "logs": {
+    "force_flush_interval": 5,
+    "logs_collected": { "files": { "collect_list": [
+      { "file_path": "/var/log/cloud-init-output.log", "log_group_name": "${host_log_group}", "log_stream_name": "{instance_id}/cloud-init" },
+      { "file_path": "/var/log/compie-bootstrap.log", "log_group_name": "${host_log_group}", "log_stream_name": "{instance_id}/bootstrap" },
+      { "file_path": "/var/log/compie-service.log", "log_group_name": "${host_log_group}", "log_stream_name": "{instance_id}/service" }
+    ] } }
+  }
+}
+CWCONFIG
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/compie.json -s
+
+cat > /usr/local/bin/compie-start <<'START'
+#!/bin/bash
+set -euo pipefail
+export AWS_DEFAULT_REGION='${region}'
+IMAGE=$(aws ssm get-parameter --name '${release_parameter}' --query Parameter.Value --output text)
+case "$IMAGE" in
+  '${ecr_repository}@sha256:'*) ;;
+  *) echo 'Release parameter must contain a digest from the assignment ECR repository.' >&2; exit 1 ;;
+esac
+aws ecr get-login-password | docker login --username AWS --password-stdin '${ecr_registry}'
+docker pull "$IMAGE"
+docker rm -f compie-app >/dev/null 2>&1 || true
+exec docker run --rm --name compie-app \
+  --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+  --cap-drop ALL --security-opt no-new-privileges \
+  -p 8080:8080 \
+  -e AWS_REGION='${region}' -e CONFIG_SOURCE=aws \
+  -e APP_CONFIG_SECRET_ARN='${config_secret_arn}' \
+  --log-driver awslogs \
+  --log-opt awslogs-region='${region}' \
+  --log-opt awslogs-group='${app_log_group}' \
+  --log-opt awslogs-create-group=false \
+  --log-opt tag='{{.Name}}/{{.ID}}' \
+  "$IMAGE"
+START
+chmod 750 /usr/local/bin/compie-start
+
+cat > /etc/systemd/system/compie-app.service <<'UNIT'
+[Unit]
+Description=Compie Items Board container
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/compie-start
+ExecStop=/usr/bin/docker stop --time 25 compie-app
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=35
+StandardOutput=append:/var/log/compie-service.log
+StandardError=append:/var/log/compie-service.log
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now compie-app.service
+echo 'Application service installed; inspect /var/log/compie-service.log and CloudWatch for startup.'
