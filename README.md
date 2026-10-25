@@ -338,6 +338,8 @@ terraform -chdir=infra/dev output -raw dashboard_name
 
 The dashboard's [AWS console view](https://il-central-1.console.aws.amazon.com/cloudwatch/home?region=il-central-1#dashboards/dashboard/compie-dev-dashboard) is in `il-central-1`.
 
+Bonus infrastructure commit `f535ec4` passed the [automatic infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960). The initial local saved plan created two resources. The subsequent CI apply made no changes and verified database health. The infrastructure CI role can manage only the project ASG's scaling policies and the one project dashboard; its explicit secret-value denial is unchanged. This infrastructure-only commit did not release a new application image.
+
 ## Submission and teardown
 
 The saved evidence covers the live page and database health, a push-triggered release, EC2 replacement, preservation of existing database items, private addressing, CI secret-access denial, KMS settings, CloudWatch logs, SNS/SQS delivery, and final Terraform plans with no changes. Manual rollback remains unexercised. The exact verification scope is recorded in [the validation summary](evidence/validation-summary.md).

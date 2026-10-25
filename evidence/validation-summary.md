@@ -16,6 +16,7 @@ Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
 | CloudWatch dashboard | Verified `compie-dev-dashboard` and its four widgets against live AWS metrics. Terraform output: `dashboard_name = "compie-dev-dashboard"`. Screenshot is in the local submission ZIP only. |
 | Architecture visual diagram | Generated standalone HTML diagrams, supplied in the ZIP. Browser capture of the local file was blocked, so no architecture screenshot is claimed. |
 | Bonus apply | Reviewed saved Terraform plan applied: 2 additions, 0 changes, 0 destroys. The running instance remained healthy and was not replaced. |
+| Bonus CI plan/apply | Commit `f535ec4` passed [push plan 40217331032](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual apply 40217381960](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960). CI applied zero changes and verified database health. Scoped scaling-policy/dashboard permissions were added with user approval; secret-value denial remains unchanged. |
 
 ## Evidence scope
 
@@ -24,10 +25,10 @@ The public repository contains earlier sanitized snapshots and links to the late
 ## Verification limits
 
 - Manual rollback is implemented and documented but was not exercised.
-- Infrastructure manual-apply mode was not exercised; the initial dev apply used the local Terraform CLI.
+- Infrastructure manual-apply mode passed for the deployed bonus configuration with no resource changes. Initial resource creation used the local Terraform CLI; CI creation/deletion of these bonus resources has not been exercised.
 - A rolling replacement was demonstrated; an injected instance failure and measured zero-downtime guarantee were not tested.
 - Root credentials remain in the explicitly named bootstrap profile. Routine CLI inspection uses the read-only operator role.
 - The earlier root database comparison succeeded outside the VPC; the resource-policy denial test passed for the non-root operator.
 - Captured alarm messages demonstrate initial ALARM/recovery delivery rather than the later forced-test reason.
 
-The environment remains provisioned. The CI repair applied one IAM metadata-read change without creating or deleting resources. The push-triggered Application workflow performed the instance refresh. No Terraform destroy was performed.
+The environment remains provisioned. The earlier CI repair added an IAM metadata-read action. The later bonus apply added a scaling policy and dashboard; the approved CI permission update changed one inline policy. Both subsequent CI plan and manual apply passed. The application release remains `8d4597b`; no instance refresh or Terraform destroy was performed during the bonus work.
