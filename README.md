@@ -1,97 +1,18 @@
 # Compie Items Board
 
-One Flask application serves HTML/CSS, handles add/delete forms, and accesses DynamoDB. No browser JavaScript, Node.js, npm, Docker Compose, or standalone scripts directory is needed.
+A small Flask application with server-rendered HTML, DynamoDB storage, and GitHub Actions delivery to private EC2 instances behind a public ALB. Region: `il-central-1`.
 
-**Verified on October 25, 2026:** a push to `main` automatically built and tested the image, pushed it to ECR, refreshed the private EC2 instance, and served the pushed commit with database health `ok`. Both Terraform roots subsequently reported no changes.
+![AWS architecture: public ALB, private EC2 ASG, DynamoDB endpoint, delivery and alerting](docs/architecture.png)
 
-Live application: [Items Board](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com). The environment is temporary and may be removed after review.
+The second EC2 represents optional scale-out capacity. [Editable diagram](docs/architecture.svg).
 
-Successful push-triggered runs: [Application](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) and [Infrastructure](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491). The deployed release is `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`; existing demo items survived the instance replacement. See the [evidence index](evidence/README.md) for results and verification limits.
+[Live application](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com) · [Database health](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960)
 
-## Project
-
-- `app.py`: routes, database access, runtime configuration, and `/health`.
-- `templates/index.html` and `static/style.css`: server-rendered interface.
-- `requirements.txt` and `Dockerfile`: Python dependencies and container.
-- `infra/bootstrap` and `infra/dev`: foundational resources and the environment.
-- `.github/workflows`: separate application and infrastructure workflows.
-- `tests`: behavior checks, run inside the application image.
-
-Request path: **browser → public ALB → private EC2/ASG → DynamoDB gateway endpoint**. Region: `il-central-1`.
-
-```mermaid
-graph TB
-    subgraph Internet ["Public Internet"]
-        User(["User / Web Browser"])
-        GHActions["GitHub Actions (CI/CD Pipeline)"]
-    end
-
-    subgraph AWS ["AWS Cloud (Region: il-central-1)"]
-        subgraph VPC ["VPC: 10.42.0.0/16"]
-            IGW["Internet Gateway (IGW)"]
-
-            subgraph PublicSubnets ["Public Subnets (il-central-1a / il-central-1b)"]
-                ALB["Application Load Balancer (ALB)<br/>Security Group: Inbound TCP 80"]
-                NAT["NAT Gateway (Public Subnet 1)"]
-            end
-
-            subgraph PrivateSubnets ["Private Subnets (il-central-1a / il-central-1b) - No Public IPs"]
-                ASG["Auto Scaling Group (Min: 1, Desired: 1, Max: 2)"]
-                EC2["EC2 Instance (t3.micro, AL2023)<br/>Container: Flask + Gunicorn (:8080)<br/>SG: Inbound 8080 from ALB SG only"]
-            end
-
-            VPCE["DynamoDB Gateway VPC Endpoint"]
-        end
-
-        subgraph Storage_Security ["Data, Configuration & IAM"]
-            DDB[("Amazon DynamoDB<br/>Table: compie-dev-items<br/>(KMS: aws/dynamodb)")]
-            SM["AWS Secrets Manager<br/>/compie/dev/app-config<br/>(KMS: aws/secretsmanager)"]
-            SSM["AWS SSM Parameter Store<br/>/compie/dev/release-image"]
-            ECR["Amazon ECR Repository<br/>compie-dev"]
-            IAM["IAM Roles & GitHub OIDC Trust<br/>(Least-Privilege Scoping)"]
-        end
-
-        subgraph Monitoring ["Observability & Alerting"]
-            CWL["CloudWatch Logs<br/>/compie/dev/app & /instance"]
-            CWA["CloudWatch Metric Alarm<br/>No Healthy Targets (< 1 for 2m)"]
-            SNS["Amazon SNS Topic<br/>compie-dev-alerts"]
-            SQS["Amazon SQS Queue<br/>compie-dev-alerts"]
-        end
-    end
-
-    %% Traffic Flow
-    User -->|HTTP :80| IGW
-    IGW --> ALB
-    ALB -->|Forward :8080| EC2
-
-    %% Private Compute Interactions
-    ASG -->|Maintains capacity| EC2
-    EC2 -->|Gateway Route| VPCE
-    VPCE --> DDB
-    EC2 -.->|Outbound Egress| NAT
-    NAT --> IGW
-    EC2 -->|Fetch Config| SM
-    EC2 -->|Read Image Digest| SSM
-    EC2 -->|Pull Container Image| ECR
-    EC2 -->|Forward stdout/stderr| CWL
-
-    %% CI/CD Flow
-    GHActions -->|1. AssumeRoleWithWebIdentity| IAM
-    GHActions -->|2. Docker Push| ECR
-    GHActions -->|3. Update Release Digest| SSM
-    GHActions -->|4. Trigger Instance Refresh| ASG
-
-    %% Alerting Flow
-    ALB -.->|HealthyHostCount Metric| CWA
-    CWA -->|Trigger Alarm| SNS
-    SNS -->|Fanout Message| SQS
-```
+Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses were verified at `f535ec4`. The temporary AWS environment may be removed after review.
 
 ## Run locally
 
-Run these PowerShell commands from the repository root with Docker Desktop using Linux containers. Port `8080` must be available. Python dependencies install inside the image; the local run needs no AWS account or credentials.
-
-Build the image, start DynamoDB Local and the application, then create the local table:
+Use PowerShell 7 from the repository root, with Docker Desktop running Linux containers. No AWS credentials are needed. The application exposes `/` and `GET /health`; health performs a real database query and returns `200` or `503`.
 
 ```powershell
 docker build -t compie-items:local .
@@ -99,273 +20,150 @@ docker network create compie-local
 docker run -d --name compie-db --network compie-local amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb
 docker run -d --name compie-app --network compie-local -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 compie-items:local
 docker exec compie-app flask --app app:create_app init-local-db
-```
-
-Check both required endpoints:
-
-```powershell
-(Invoke-WebRequest -Uri http://127.0.0.1:8080/).StatusCode
-Invoke-RestMethod -Uri http://127.0.0.1:8080/health
+(Invoke-WebRequest http://127.0.0.1:8080/).StatusCode
+Invoke-RestMethod http://127.0.0.1:8080/health
 docker inspect compie-app --format '{{.State.Health.Status}}'
 ```
 
-Expected: `/` returns `200` and renders the board; `/health` returns `{"status":"ok","database":"ok","version":"local"}`. The version follows the image's `APP_VERSION` build argument. Docker reports `healthy` after its first successful health check; it may initially report `starting`.
+Expected: `/` returns `200`; `/health` reports `database: ok`, `status: ok`, and `version: local`. Docker changes from `starting` to `healthy` after the health check. Open http://localhost:8080, add an item, reload, and delete it. The local database is disposable and loses records when its container stops.
 
-Open **http://localhost:8080** in a browser. Add an item, reload to confirm it remains, then delete it. Forms reload the page without browser JavaScript. `/health` makes a real database query and returns `503` if that query fails. Input is limited to 200 characters; Jinja escapes user text. The board shows up to 100 recent records.
+The [Dockerfile](Dockerfile) uses a digest-pinned Python slim base, pinned direct dependencies, a cached dependency layer, non-root UID `10001`, Gunicorn, and a database-backed health check. `.dockerignore` allowlists only application files. There is no frontend build or JavaScript runtime. The CA build-secret option is available for an existing enterprise CA bundle; it does not disable TLS verification.
 
-The second local container is a disposable **test database**. In AWS, DynamoDB is managed by AWS; only the Flask container runs on EC2. Restarting the app preserves local records. Removing the in-memory DB discards local records.
+Run the unit checks and clean up locally:
 
 ```powershell
 docker run --rm --entrypoint python -v "${PWD}/tests:/app/tests:ro" compie-items:local -m unittest discover -s tests -v
-docker restart compie-app
-docker logs compie-app
-```
-
-Local cleanup; use this before repeating the startup commands if the container or network names already exist:
-
-```powershell
 docker stop compie-app compie-db
 docker rm compie-app compie-db
 docker network rm compie-local
 ```
 
-On an enterprise network, an existing trusted CA bundle can be mounted during build:
+## Deploy to AWS
+
+Prerequisites: Terraform **1.13.5**, AWS CLI v2, Git, a GitHub repository using `main`, and an AWS provisioning identity. The workstation's `compie-operator` profile is read-only and cannot provision, access Terraform state, or destroy. Use your authorized provisioning profile for the commands below. Keep credentials outside the repository.
+
+### 1. Bootstrap the account
+
+Copy the example and edit `github_subject` to match your repository's exact main-branch OIDC subject. This repository uses `repo:LiorTal26@91834069/Compie-HomeTask@1433129391:ref:refs/heads/main`. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider.
 
 ```powershell
-docker build --secret id=pip_ca,src=PATH_TO_TRUSTED_CA.pem -t compie-items:local .
+$env:AWS_PROFILE = "YOUR_PROVISIONING_PROFILE"
+aws sts get-caller-identity
+Copy-Item infra/bootstrap/terraform.tfvars.example infra/bootstrap/terraform.tfvars
+# Edit infra/bootstrap/terraform.tfvars before continuing.
+terraform -chdir=infra/bootstrap init
+terraform -chdir=infra/bootstrap plan "-out=bootstrap.tfplan"
+terraform -chdir=infra/bootstrap apply bootstrap.tfplan
+terraform -chdir=infra/bootstrap output
 ```
 
-The optional CA is used only during dependency installation. It is not copied into the image, and certificate verification remains enabled.
+Bootstrap creates ECR, the private versioned state bucket, GitHub OIDC roles, the EC2 instance profile, configuration-secret metadata, and the release parameter. Its state stays local: retain it until teardown and exclude it from submission.
 
-### Docker practices
+### 2. Set runtime configuration and GitHub variables
 
-| Choice | Purpose |
+Populate the secret separately so configuration values stay out of Terraform state:
+
+```powershell
+New-Item -ItemType Directory -Path .local -Force
+'{"welcomeMessage":"A small app. A complete delivery path.","tableName":"compie-dev-items"}' | Set-Content .local/app-config.json -Encoding utf8
+$secret = terraform -chdir=infra/bootstrap output -raw app_config_secret_arn
+aws secretsmanager put-secret-value --secret-id $secret --secret-string file://.local/app-config.json --region il-central-1
+```
+
+In **GitHub → Settings → Secrets and variables → Actions → Variables**, set:
+
+| Repository variable | Value |
 |---|---|
-| Slim Python base pinned by SHA-256 digest | Keeps the selected base image fixed until deliberately updated. |
-| Direct Python dependencies pinned in `requirements.txt` | Controls their versions. Transitive dependencies are resolved by pip during the build. |
-| Copy requirements before application code; `pip --no-cache-dir` | Reuses the dependency layer for code-only changes and avoids retaining pip's download cache. |
-| Allowlist in `.dockerignore`; explicit application copies | Keeps Git history, Terraform state, credentials, evidence, and unrelated files out of the application build context. |
-| `USER appuser`, UID `10001` | Runs the application without root privileges. |
-| Gunicorn with exec-form `CMD`, listening on `8080` | Runs the web server directly as the container process and allows it to receive shutdown signals. |
-| Database-backed `HEALTHCHECK` | Checks application and database readiness. |
-| Read-only root filesystem, writable `/tmp`, dropped capabilities, `no-new-privileges` | Applies the runtime restrictions shown in the local command and EC2 startup configuration. |
+| `AWS_REGION` | `il-central-1` |
+| `ECR_REPOSITORY` | Bootstrap output `ecr_repository_url` |
+| `APPLICATION_ROLE_ARN` | Bootstrap output `application_role_arn` |
+| `INFRASTRUCTURE_ROLE_ARN` | Bootstrap output `infrastructure_role_arn` |
+| `TF_STATE_BUCKET` | Bootstrap output `state_bucket` |
+| `APPLICATION_URL` | Set after the first dev apply below. |
 
-A single stage is sufficient for this application: there is no frontend compilation or separate build output to copy into a runtime image. Application request logs go to stderr, which Docker captures.
+AWS access keys are not stored in GitHub. Both workflows use OIDC temporary credentials.
 
-Recorded local proof: [HTTP checks](evidence/docker-local-http.json), [runtime inspection](evidence/docker-runtime.json), and [browser screenshot](evidence/local-flask.jpg). The evidence was captured from the existing local build tagged `compie-items:local`, with version `flask-local`.
+### 3. Publish the first image and apply dev
 
-## Bootstrap AWS and GitHub
+In **Actions → Application → Run workflow**, select branch `main` and mode **`bootstrap`**. Wait for success: this builds/tests the image, pushes it to ECR, and sets the initial release digest. Bootstrap mode is only for an environment whose ASG does not yet exist.
 
-Prerequisites: AWS CLI v2, Terraform **1.13.5**, Docker, Git, and permission to configure the GitHub repository's Actions variables. Repository visibility is your choice; the assignment specifies a ZIP submission. Check `aws sts get-caller-identity` before provisioning.
-
-On this workstation, the default AWS profile now assumes the read-only `compie-operator` role for inspections. Provisioning and local Terraform commands below require a separately authorized provisioning identity; the read-only profile cannot apply or destroy infrastructure or access Terraform state. The existing Infrastructure workflow uses its own CI role for dev plans/applies.
-
-1. Use your GitHub repository and its `main` branch. This project targets `LiorTal26/Compie-HomeTask`. The original assignment PDF is ignored.
-2. Match the repository's default OIDC subject. New repositories use `repo:OWNER@OWNER_ID/REPO@REPOSITORY_ID:ref:refs/heads/main`; this repository's IDs are owner `91834069` and repository `1433129391`. These identifiers are available in [GitHub repository metadata](https://api.github.com/repos/LiorTal26/Compie-HomeTask). No custom token settings are required. See [GitHub's OIDC reference](https://docs.github.com/en/actions/reference/security/oidc).
-3. Copy `infra/bootstrap/terraform.tfvars.example` to the ignored `terraform.tfvars` and fill in the exact subject. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider; it will be reused and preserved.
-4. Review and apply bootstrap locally:
-
-   ```powershell
-   terraform -chdir=infra/bootstrap init
-   terraform -chdir=infra/bootstrap plan "-out=bootstrap.tfplan"
-   terraform -chdir=infra/bootstrap apply bootstrap.tfplan
-   terraform -chdir=infra/bootstrap output
-   ```
-
-5. Populate runtime configuration outside Terraform state:
-
-   ```powershell
-   New-Item -ItemType Directory -Path .local -Force
-   '{"welcomeMessage":"A small app. A complete delivery path.","tableName":"compie-dev-items"}' | Set-Content .local/app-config.json
-   $secret = terraform -chdir=infra/bootstrap output -raw app_config_secret_arn
-   aws secretsmanager put-secret-value --secret-id $secret --secret-string file://.local/app-config.json --region il-central-1
-   ```
-
-6. Set GitHub repository variables from bootstrap outputs:
-
-   | Variable | Value |
-   |---|---|
-   | `AWS_REGION` | `il-central-1` |
-   | `ECR_REPOSITORY` | `ecr_repository_url` |
-   | `APPLICATION_ROLE_ARN` | `application_role_arn` |
-   | `INFRASTRUCTURE_ROLE_ARN` | `infrastructure_role_arn` |
-   | `TF_STATE_BUCKET` | `state_bucket` |
-   | `APPLICATION_URL` | Set after the first dev apply. |
-
-Bootstrap state stays local and is excluded from submission; retain it until teardown. Dev state uses encrypted, versioned S3 storage with native locking. Provider lockfiles include Windows and Linux checksums.
-
-## First deployment
-
-Run **Application → Run workflow → mode: bootstrap**. It builds/tests the container, pushes an immutable image, and seeds the non-secret release parameter. Bootstrap mode refuses to run if the dev ASG already exists.
-
-Run **Infrastructure → Run workflow → operation: apply**. This provisions networking, database, logs, alerts, ALB, and private compute. Set `APPLICATION_URL` from its summary.
-
-The first automatic run can fail before variables/bootstrap are ready. Complete setup and explicitly run bootstrap mode. Future app changes on `main` deploy normally.
-
-To operate Terraform locally, initialize the same dev backend:
+Initialize the dev backend and apply the environment:
 
 ```powershell
 $bucket = terraform -chdir=infra/bootstrap output -raw state_bucket
-terraform -chdir=infra/dev init -backend-config="bucket=$bucket" -backend-config="key=dev/terraform.tfstate" -backend-config="region=il-central-1" -backend-config="encrypt=true" -backend-config="use_lockfile=true"
+terraform -chdir=infra/dev init "-backend-config=bucket=$bucket" "-backend-config=key=dev/terraform.tfstate" "-backend-config=region=il-central-1" "-backend-config=encrypt=true" "-backend-config=use_lockfile=true"
 terraform -chdir=infra/dev plan "-out=dev.tfplan"
 terraform -chdir=infra/dev apply dev.tfplan
-terraform -chdir=infra/dev output
+$url = terraform -chdir=infra/dev output -raw application_url
+Invoke-RestMethod "$url/health"
 ```
 
-## Releases and rollback
+Set GitHub's **`APPLICATION_URL`** variable to `$url`. Open that URL and add an item. Dev state uses encrypted S3 storage, versioning, and native locking. Reuse this backend configuration when operating the existing stack; do not bootstrap another copy to inspect it.
+
+## CI/CD and rollback
 
 | Workflow | Trigger | Result |
 |---|---|---|
-| Application | Push to `main` changing `app.py`, templates, static files, tests, requirements, Dockerfile, `.dockerignore`, or the Application workflow; alternatively Run workflow in `release` mode. | Build and test, push to ECR, update the image digest, refresh the ASG, then verify `/`, database health, and the running commit. |
-| Infrastructure | Push to `main` changing `infra/**` or the Infrastructure workflow; alternatively Run workflow with `plan` or `apply`. | Format/validate and plan `infra/dev`. Apply runs only for manual `operation: apply`, using the plan generated in that same job. |
+| [Application](.github/workflows/application.yml) | Push to `main` changing app code, templates, static files, tests, `requirements.txt`, `Dockerfile`, `.dockerignore`, or its workflow. Manual mode: `release`. | Build → unit and real DynamoDB Local CRUD checks → ECR push → update SSM image digest → ASG Instance Refresh → verify `/`, DB health, and release commit. |
+| [Infrastructure](.github/workflows/infrastructure.yml) | Push to `main` changing `infra/**` or its workflow: **plan only**. Manual `operation: apply`: **plan and apply**. | Format, validate, initialize the same S3 backend, and generate a plan. Manual apply uses that run's saved plan and checks health. |
 
-Use `main` when manually dispatching either workflow. README/evidence-only commits skip both automatic workflows. Unpushed local commits do not start Actions.
+Both workflows share `compie-dev-write` concurrency; avoid a local apply during a deployment. README/evidence/diagram-only changes do not trigger either workflow. GitHub variables and initial bootstrap are the only setup steps before automatic releases.
 
-The Application summary links to the live site and records the verified release commit, ECR digest, and database health. Once AWS bootstrap and repository variables are configured, a matching push performs the release without AWS console steps.
+Images use immutable tags and are deployed by digest. The pipeline owns `/compie/dev/release-image`; Terraform ignores changes to its value. Instance Refresh launches healthy replacements before terminating old instances (`100%` minimum healthy, `200%` maximum, `SkipMatching=false`).
 
-The earlier Infrastructure failure was a missing `secretsmanager:GetResourcePolicy` permission needed by Terraform's secret data source. Bootstrap now grants that metadata read on the one app secret, while both secret-value APIs remain explicitly denied. Compare the [earlier failed run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40202252740) with the [successful no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491). Detailed new AWS snapshots and logs are supplied only in the submission ZIP.
+**Rollback:** open the failed Application run's summary, copy the previous image's `sha256:...` digest, then run **Application → mode: `rollback` → image_digest: that digest**, on `main`. This selects the existing image and refreshes the ASG. Manual rollback is implemented but has not been exercised.
 
-- Both workflows share a concurrency group. Avoid local applies during a workflow deployment.
-- ECR tags include commit/run/attempt and are immutable. Instances pull an image digest.
-- The pipeline owns `/compie/dev/release-image`; Terraform narrowly ignores changes to its value. EC2 startup reads it and launches the container through systemd.
-- Refresh uses `SkipMatching=false`, minimum healthy `100%`, maximum healthy `200%`, launching a replacement before terminating the old instance.
-- The summary records the previous image. Recover by dispatching Application in `rollback` mode with its existing `sha256:...` digest. Recovery is manual; deployment errors remain failures.
+## Capacity, security, and operations
 
-The EC2 startup shell template installs Docker/CloudWatch and starts the container. It is part of the launch template, rather than a separate operator-helper framework.
+**Capacity:** `compie-dev-asg` starts at **min 1 / desired 1 / max 2**, with ELB health checks, a 300-second startup grace period, and `/health` checks every 15 seconds. CPU target tracking aims for **70%**, with **60-second warmup**. Terraform ignores later desired-capacity changes so it does not undo scaling. EC2 basic CPU metrics arrive every five minutes. The deployed policy was verified; no CPU stress test or load-triggered scaling event was performed.
 
-## Networking, compute, and capacity
+One steady instance and one NAT gateway keep the exercise small but permit instance/AZ failures to interrupt service. For higher availability, use a minimum of two instances across AZs and a NAT gateway per AZ; increase the maximum after measuring demand.
 
-Terraform creates one VPC with two public and two private subnets across two Availability Zones. Public subnet default routes use the Internet Gateway; private subnet default routes use one NAT gateway. The internet-facing ALB occupies the public subnets and forwards HTTP requests to the ASG's instance target group on port `8080`.
-
-The ASG uses a Terraform launch template to run the Docker container on Amazon Linux 2023 `t3.micro` instances in the private subnets. Public IP assignment is disabled in both the subnets and launch template. Docker and systemd manage the container on EC2.
-
-Initial capacity is **min 1 / desired 1 / max 2**. The ASG maintains the desired capacity and uses ELB health checks to replace unhealthy instances. The target group checks `/health` every 15 seconds, expects HTTP `200`, and the ASG allows 300 seconds for startup. During releases, Instance Refresh starts the replacement before terminating the previous instance.
-
-The CPU target-tracking policy targets **70% average CPU**, with a **60-second instance warmup**, within the **1–2 instance** bounds. Terraform sets the initial desired capacity to one and ignores later changes to `desired_capacity`, allowing the policy to manage it. EC2 basic monitoring publishes CPU every five minutes, so scaling is not immediate. To support more load, increase the Terraform min/max bounds after measuring the workload. For steady multi-AZ capacity, raise the minimum to two and choose a larger maximum.
-
-One steady instance and one NAT gateway keep the exercise small but allow instance or AZ failures to interrupt service. Higher availability would use at least two steady instances across the AZs and a NAT gateway per AZ.
-
-Live configuration evidence: [networking and compute checks](evidence/network-compute-checks.json).
-
-## Security and operations
-
-Instances have no public IP and require IMDSv2. The ALB security group accepts public TCP `80` and can send TCP `8080` only to the application security group. The application security group accepts TCP `8080` only from the ALB security group and permits outbound TCP `443` for service access. No SSH ingress is configured; use SSM for administration. One NAT gateway provides outbound AWS-service access.
-
-### Data store
-
-Terraform provisions the managed DynamoDB table `compie-dev-items`. DynamoDB is an AWS regional service outside the VPC. The application reaches it through a gateway endpoint attached to both private route tables; database traffic follows that endpoint route rather than the NAT gateway. See [AWS's DynamoDB endpoint documentation](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-ddb.html).
-
-The endpoint policy allows only the application role's `Query`, `PutItem`, and `DeleteItem` operations on this table. The table resource policy is configured to deny data operations outside the specified endpoint and to principals other than the application role. These restrictions apply to table data; authorized Terraform control-plane operations remain available.
-
-AWS database authentication uses temporary credentials from the EC2 instance profile. The table name comes from Secrets Manager and the region comes from runtime configuration. There is no database password or hardcoded AWS connection string. The dummy credentials and localhost endpoint in the source are limited to DynamoDB Local mode.
-
-`/health` executes a real DynamoDB `Query` with a limit of one and returns `200` when it succeeds, or `503` when it fails. The application's forms also add, list, and delete table records.
-
-The table uses `PAY_PER_REQUEST` for this short, low-traffic demo, with no provisioned read/write capacity to manage. Request and storage charges can apply; this is not a guarantee of free-tier usage. AWS's read/write free-tier capacity allowance uses provisioned mode; see [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/). Destroying `infra/dev` removes the table. Keep the environment only while collecting and reviewing evidence, then follow the teardown commands below.
-
-**Privacy check:** the application queries the table successfully. A non-root operator query through the explicit public DynamoDB endpoint returned `AccessDeniedException` with an explicit deny in the table's resource policy. The same denial occurred while a temporary identity policy allowed only `COUNT` queries on this table; the temporary policy was removed afterward. No item values were returned by that test.
-
-An earlier comparison query using root credentials succeeded outside the VPC. That result is retained in the evidence; the demonstrated resource-policy denial is for the non-root operator. Root credentials are no longer the default CLI identity. An initial temporary-role probe could not obtain a session and was cleaned up.
-
-Evidence: [table, endpoint, and live health](evidence/database-checks.json), [non-root denial test](evidence/database-operator-probe.json), [root comparison](evidence/database-outside-endpoint.json), and [initial temporary-role cleanup](evidence/database-nonroot-probe.json). No database records were changed and no secret values were retrieved.
-
-### Image, configuration, and IAM
-
-The private ECR repository is `108782097005.dkr.ecr.il-central-1.amazonaws.com/compie-dev`. Tags are immutable, scanning is enabled on push, and releases select an image by digest through the non-secret SSM parameter `/compie/dev/release-image`.
-
-AWS runtime configuration is JSON in Secrets Manager at `/compie/dev/app-config`, containing `welcomeMessage` and `tableName`. Terraform creates only the secret metadata; its value is populated separately. EC2 supplies the secret ARN and `CONFIG_SOURCE=aws` to the container. Flask calls Secrets Manager through boto3 at startup using the EC2 instance role, then uses the configured table for DynamoDB requests. Configuration updates take effect after restarting the application or refreshing its instances. Local demo defaults apply only when `CONFIG_SOURCE=local`.
-
-| Identity | Responsibility and limits |
+| Control | Implementation |
 |---|---|
-| `compie-dev-instance` instance profile | Pull the project ECR image, read the app configuration, access the items table, read the release parameter, and write project logs. `AmazonSSMManagedInstanceCore` supports SSM management. |
-| `compie-dev-application-ci` | Push to the project ECR repository, update the release parameter, and trigger/observe the project ASG refresh. Explicitly denies both `GetSecretValue` and `BatchGetSecretValue`. |
-| `compie-dev-infrastructure-ci` | Manage the dev Terraform state and selected infrastructure operations. Can pass only the existing instance role to EC2; can inspect app-secret metadata but explicitly denies secret-value retrieval. |
-| `compie-operator` | Read-only local metadata/evidence checks, with explicit denial of secret values. No provisioning, deletion, or permanent database-data permissions. |
+| Network | Two public and two private subnets across two AZs. Public routes use the Internet Gateway; private egress uses one NAT. EC2 has no public IP. |
+| Access | Public ALB accepts HTTP `80`; EC2 accepts `8080` only from the ALB security group. IMDSv2 is required; administration uses SSM, with no SSH ingress. |
+| Database | DynamoDB on-demand. Gateway endpoint, endpoint policy, and table policy restrict app data access to the application role through that endpoint. A non-root outside-endpoint denial was verified; the earlier root comparison succeeded and is recorded in the evidence. |
+| Configuration / KMS | Flask reads runtime JSON from Secrets Manager at startup using its instance role. DynamoDB uses `aws/dynamodb`; Secrets Manager uses `aws/secretsmanager`. Both AWS-managed KMS keys were verified enabled. Configuration changes require an app restart or instance refresh. |
+| IAM | Separate EC2 runtime, application CI, and infrastructure CI roles. CI explicitly denies secret-value reads. Infrastructure CI can pass only the project instance role. Routine local inspection uses a separate read-only operator. |
+| Logs | App request IDs, status, duration, and release version → Docker `awslogs` → `/compie/dev/app`. CloudWatch agent sends cloud-init/bootstrap/service logs → `/compie/dev/instance`. Both retain seven days. |
+| Alerting | `HealthyHostCount < 1` for two consecutive 60-second periods → SNS → subscribed SQS, with restricted topic/queue policies. An operations email or incident-management integration would replace the placeholder receiver. |
+| Dashboard | Bonus `compie-dev-dashboard`: ALB health/traffic, ASG CPU, DynamoDB capacity/query latency, and the alarm threshold. |
 
-Both CI roles use GitHub OIDC temporary credentials. Their trust policies match this repository's exact subject on `main` and audience `sts.amazonaws.com`. The workflows use their respective role ARNs. None of these roles has `AdministratorAccess` attached. ECR authorization uses `Resource: "*"` following [AWS's ECR policy example](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html); repository push/pull operations are scoped to the project repository.
-
-Repository write access remains security-sensitive because deployed code executes with the instance identity. Denying secret-read APIs to CI protects direct API access; a trusted deployment can still run application code with runtime permissions.
-
-**Local operator access:** the default CLI profile and named profile `compie-operator` now assume a scoped read-only role with one-hour sessions. A source IAM user, `compie-operator-source`, can only assume that role. Its access key is stored in the local AWS credentials file outside this repository; no console login was created. This account-access identity is separate from the assignment's Terraform-managed runtime and CI roles.
-
-The original root credentials remain in the explicitly named `compie-root-bootstrap` profile and have not been retired. Routine inspections now use the non-root role, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). Use the existing Infrastructure workflow for dev changes; this local profile has no provisioning or deletion permissions.
-
-```powershell
-aws sts get-caller-identity
-aws sts get-caller-identity --profile compie-operator
-```
-
-Both commands should report an ARN starting with `arn:aws:sts::108782097005:assumed-role/compie-operator/`. See [operator setup evidence](evidence/operator-setup.json). The profile credentials and AWS CLI credential cache are excluded from submission.
-
-Verification: [image, configuration, and IAM evidence](evidence/image-config-iam-checks.json), plus [recent application log delivery](evidence/app-runtime-log-proof.json). Secret metadata and permission simulations are recorded without secret values.
-
-| Requirement | Implementation |
-|---|---|
-| App logs | JSON requests → Docker `awslogs` → `/compie/dev/app`. |
-| Instance logs | CloudWatch agent collects cloud-init, bootstrap, and startup logs. |
-| Retention | Seven days. Configuration contents are not logged. |
-| Database encryption | Explicit AWS-managed KMS `aws/dynamodb`. |
-| Config encryption | Secrets Manager, using `aws/secretsmanager`; values stay out of state. |
-| Monitoring | `HealthyHostCount < 1` for two consecutive one-minute periods. |
-| Alert receiver | CloudWatch → SNS → subscribed SQS, with a topic-restricted queue policy. |
+Reach the logs directly:
 
 ```powershell
 aws logs tail /compie/dev/app --since 15m --region il-central-1
 aws logs tail /compie/dev/instance --since 15m --region il-central-1
-$queue = terraform -chdir=infra/dev output -raw alert_queue_url
-aws cloudwatch set-alarm-state --alarm-name compie-dev-no-healthy-targets --state-value ALARM --state-reason "Assignment notification-path test" --region il-central-1
-aws sqs receive-message --queue-url $queue --wait-time-seconds 10 --max-number-of-messages 10 --region il-central-1
 ```
 
-If already ALARM, wait for healthy metrics to restore OK before testing that transition. A forced state tests notification wiring, not a genuine outage. Real metrics restore the state. A real receiver would be an operations email or incident-management integration.
+## Verification evidence
 
-## Bonus Deliverables
+| Requirement | Recorded proof |
+|---|---|
+| Local Docker: `/`, `/health`, non-root runtime | [HTTP results](evidence/docker-local-http.json), [container inspection](evidence/docker-runtime.json) |
+| Commit → running application | [Successful push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [replacement activity](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png); existing DB items survived replacement |
+| Infrastructure plan / apply | [Push plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032), [manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960); subsequent plans found no changes |
+| Private networking, IAM, KMS | [Network checks](evidence/network-compute-checks.json), [security checks](evidence/security-checks.json), [database denial test](evidence/database-operator-probe.json) |
+| Usable app / instance logs | [App records](evidence/app-logs.txt), [startup records](evidence/instance-logs.txt) |
+| Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json); initial provisioning transitions, not an injected outage |
 
-- **Dynamic ASG scaling:** [compute.tf](infra/dev/compute.tf) defines `aws_autoscaling_policy.cpu` for `compie-dev-asg`, using `ASGAverageCPUUtilization`, a 70% target, and 60-second warmup. The deployed policy and its AWS-managed high/low alarms were verified. A CPU stress test and an actual load-triggered capacity change have not been demonstrated.
-- **CloudWatch dashboard:** [observability.tf](infra/dev/observability.tf) defines `compie-dev-dashboard`, with four widgets covering ALB target health/traffic, ASG CPU, DynamoDB consumed capacity/query latency, and the healthy-target alarm threshold. Terraform exposes `dashboard_name = "compie-dev-dashboard"`. The dashboard was checked against live AWS metrics.
-- **Architecture diagram:** The submission ZIP includes standalone HTML diagrams at `architecture.html` and `evidence/architecture.html`. They show the VPC, subnet tiers, ALB, private compute, database endpoint, KMS-backed stores, CI/CD, and alert path. The diagram has no external asset dependencies. It is supplied locally with the new evidence.
+<details>
+<summary>Application and deployment screenshots</summary>
 
-The ZIP includes `evidence/cloudwatch-dashboard.png`, `evidence/live-app-ui.png`, `evidence/live-health-check.png`, and detailed bonus verification. The architecture screenshot remains incomplete because the browser blocks local `file://` navigation; the HTML itself is included.
+Public snapshots captured during the assignment; the ZIP contains the latest application, health, dashboard, and apply screenshots.
 
-KMS encryption for DynamoDB and Secrets Manager is a core assignment requirement and is documented above. Both use enabled AWS-managed keys; it is not counted as an additional bonus.
+![Application served through the public ALB](evidence/live%20app%20running%20from%20ec2%20proof.png)
 
-Read-only verification commands:
+![ASG replacement: launch the new instance before terminating the previous one](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png)
 
-```powershell
-aws autoscaling describe-policies --auto-scaling-group-name compie-dev-asg --region il-central-1 --query "ScalingPolicies[].{Name:PolicyName,Type:PolicyType,Target:TargetTrackingConfiguration.TargetValue,Warmup:EstimatedInstanceWarmup}"
-terraform -chdir=infra/dev output -raw dashboard_name
-```
+</details>
 
-The dashboard's [AWS console view](https://il-central-1.console.aws.amazon.com/cloudwatch/home?region=il-central-1#dashboards/dashboard/compie-dev-dashboard) is in `il-central-1`.
+See the [evidence index](evidence/README.md) and [validation summary](evidence/validation-summary.md) for detailed results and limits. New detailed AWS snapshots and screenshots are kept in the local submission ZIP, rather than published to this repository. The architecture image is generated from the Terraform layout.
 
-Bonus infrastructure commit `f535ec4` passed the [automatic infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960). The initial local saved plan created two resources. The subsequent CI apply made no changes and verified database health. The infrastructure CI role can manage only the project ASG's scaling policies and the one project dashboard; its explicit secret-value denial is unchanged. This infrastructure-only commit did not release a new application image.
+## Destroy the AWS environment
 
-## Submission and teardown
-
-The saved evidence covers the live page and database health, a push-triggered release, EC2 replacement, preservation of existing database items, private addressing, CI secret-access denial, KMS settings, CloudWatch logs, SNS/SQS delivery, and final Terraform plans with no changes. Manual rollback remains unexercised. The exact verification scope is recorded in [the validation summary](evidence/validation-summary.md).
-
-Commit source and sanitized evidence, then package tracked files with a portable copy of Git history:
-
-```powershell
-git add -- README.md infra .github evidence/validation-summary.md
-git commit -m "Document verified AWS release and submission evidence"
-New-Item -ItemType Directory -Path output -Force
-git archive --format=zip --output=output/compie-devops-submission.zip HEAD
-git bundle create output/git-history.bundle main
-git bundle verify output/git-history.bundle
-Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/compie-devops-submission.zip -Update
-if (Test-Path -LiteralPath output/submission-evidence) {
-    Compress-Archive -Path output/submission-evidence/* -DestinationPath output/compie-devops-submission.zip -Update
-}
-```
-
-The ZIP contains committed public source/evidence, `git-history.bundle`, and any local submission-evidence overlay. New detailed AWS verification files are kept in the ignored `output/submission-evidence` folder and added only to the ZIP. After extracting, reviewers can restore the public repository history with `git clone -b main ./git-history.bundle review-copy`; retain the ZIP's evidence directory for the private snapshots. The bundle does not copy this machine's Git configuration.
-
-Credentials, Terraform state and binary plans, tools, local configuration, and the assignment PDF are excluded. The evidence includes text output from Terraform plans, which contains no state file or secret value. Inspect the ZIP before submission.
-
-ALB, NAT, IPv4, EC2/EBS, requests, logs, and Secrets Manager can incur charges. US$15 is a short-lived planning target, not a hard cap. Check regional pricing and destroy promptly after saving evidence.
-
-Stop new deployments. These commands require a separately authorized provisioning identity and the initialized backend; the read-only inspection profile cannot run teardown:
+Save evidence first, stop deployments, and use the provisioning profile and initialized backend from setup. **Destroy dev before bootstrap**; retain local bootstrap state until both steps finish.
 
 ```powershell
 terraform -chdir=infra/dev plan -destroy "-out=destroy.tfplan"
@@ -374,4 +172,23 @@ terraform -chdir=infra/bootstrap plan -destroy "-out=destroy.tfplan"
 terraform -chdir=infra/bootstrap apply destroy.tfplan
 ```
 
-Destroy dev before bootstrap. The dedicated state bucket/ECR permit deleting project objects/images; the disposable config secret has no recovery window. A reused OIDC provider is preserved. Confirm project resources are gone before discarding bootstrap state. Keep the source repository for review.
+The assignment's ECR repository and state bucket allow deletion of their project images/objects; the disposable secret has no recovery window. A reused OIDC provider is preserved. Confirm resources are gone before discarding bootstrap state. The environment has not been destroyed as part of this documentation review. ALB, NAT, EC2/EBS, public IPv4, logs, and requests incur charges; the US$15 target is not a spending cap.
+
+## Submission
+
+The ZIP contains the application, Dockerfile, Terraform, workflows, README, screenshots, diagrams, and `git-history.bundle`. Credentials, local config, Terraform state/binary plans, tools, and the assignment PDF are excluded. Keep the private evidence overlay out of commits.
+
+After committing selected source changes, package the repository and the local evidence overlay:
+
+```powershell
+New-Item -ItemType Directory -Path output -Force
+git archive --format=zip --output=output/compie-devops-submission.zip HEAD
+git bundle create output/git-history.bundle main
+git bundle verify output/git-history.bundle
+Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/compie-devops-submission.zip -Update
+if (Test-Path output/submission-evidence) {
+    Compress-Archive -Path output/submission-evidence/* -DestinationPath output/compie-devops-submission.zip -Update
+}
+```
+
+After extracting, `git clone -b main ./git-history.bundle review-copy` restores public source history. Keep the ZIP's evidence files alongside it for the private snapshots.

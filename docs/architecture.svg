@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="1110" viewBox="0 0 1480 1110" role="img" aria-labelledby="title desc">
+<title id="title">Compie Items Board AWS architecture</title>
+<desc id="desc">A public ALB spans two public subnets. An EC2 Auto Scaling Group runs a Flask container in two private subnets. DynamoDB is reached through a gateway endpoint. GitHub Actions releases immutable ECR images. AWS-managed KMS protects the database and runtime configuration. CloudWatch sends alarms through SNS to SQS.</desc>
+<rect width="1480" height="1110" fill="#f5f7fb"/>
+<text x="48" y="46.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#2866c8">COMPIE / DEVOPS HOME ASSIGNMENT</text>
+<text x="48" y="97.24" font-family="Segoe UI, Arial, sans-serif" font-size="36" font-weight="700" fill="#142b45">Items Board  /  AWS architecture</text>
+<text x="48" y="135.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="400" fill="#53677e">Flask + Gunicorn on private EC2, delivered through GitHub Actions.</text>
+<rect x="1170" y="58" width="262" height="44" rx="22" fill="#e8effa" stroke="#e8effa" stroke-width="1"/>
+<text x="1193" y="84.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#2866c8">il-central-1  /  dev</text>
+<rect x="80" y="170" width="285" height="74" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="80" y="186" width="4" height="42" rx="2" fill="#2866c8"/>
+<text x="100" y="201.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">Web browser</text>
+<text x="100" y="228.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Public application URL</text>
+<rect x="1020" y="170" width="380" height="74" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1020" y="186" width="4" height="42" rx="2" fill="#2866c8"/>
+<text x="1040" y="201.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">GitHub Actions</text>
+<text x="1040" y="228.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Temporary AWS credentials via OIDC</text>
+<rect x="48" y="280" width="1384" height="620" rx="20" fill="#ffffff" stroke="#b8cbe0" stroke-width="1"/>
+<text x="72" y="311.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#c76b18">AWS</text>
+<text x="1015" y="308.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#53677e">REGIONAL SERVICES</text>
+<rect x="72" y="330" width="885" height="523" rx="16" fill="#f9fbfe" stroke="#a9c2df" stroke-width="1"/>
+<text x="96" y="369.48" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#142b45">VPC  /  10.42.0.0/16</text>
+<text x="96" y="393.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#53677e">Two Availability Zones</text>
+<rect x="96" y="409" width="818" height="119" rx="12" fill="#edf4ff" stroke="#d0dff2" stroke-width="1"/>
+<text x="115" y="431.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2866c8">Public subnets  /  10.42.0.0/24 + 10.42.1.0/24</text>
+<rect x="96" y="568" width="818" height="158" rx="12" fill="#edf8f5" stroke="#c4dfd7" stroke-width="1"/>
+<text x="115" y="594.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#246b5b">Private subnets  /  two AZs  /  no public IPs</text>
+<text x="115" y="620.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#246b5b">ASG: 1-2 EC2 / CPU 70% / warmup 60s</text>
+<polyline points="222,244 222,264 645,264 645,444" fill="none" stroke="#2866c8" stroke-width="3"/>
+<polygon points="645.00,444.00 640.00,435.34 650.00,435.34" fill="#2866c8"/>
+<text x="438" y="252.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2866c8">HTTP :80</text>
+<polyline points="645,506 645,548 500,548 500,627 292,627 292,636" fill="none" stroke="#2866c8" stroke-width="3"/>
+<polygon points="292.00,636.00 287.00,627.34 297.00,627.34" fill="#2866c8"/>
+<polyline points="645,548 705,548 705,636" fill="none" stroke="#81a5c0" stroke-width="2" stroke-dasharray="10 8"/>
+<polygon points="705.00,636.00 700.00,627.34 710.00,627.34" fill="#81a5c0"/>
+<text x="425" y="541.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#2866c8">ALB SG  -&gt;  app SG  /  :8080</text>
+<polyline points="128,670 108,670 108,542 232,542 232,506" fill="none" stroke="#8a9ab0" stroke-width="2" stroke-dasharray="10 8"/>
+<polygon points="232.00,506.00 237.00,514.66 227.00,514.66" fill="#8a9ab0"/>
+<text x="124" y="558.76" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#53677e">HTTPS egress</text>
+<polyline points="292,706 292,794 580,794" fill="none" stroke="#c76b18" stroke-width="3"/>
+<polygon points="580.00,794.00 571.34,799.00 571.34,789.00" fill="#c76b18"/>
+<text x="320" y="781.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#c76b18">Private database traffic</text>
+<polyline points="915,794 1015,794" fill="none" stroke="#c76b18" stroke-width="3"/>
+<polygon points="1015.00,794.00 1006.34,799.00 1006.34,789.00" fill="#c76b18"/>
+<polyline points="1210,244 1210,344" fill="none" stroke="#2866c8" stroke-width="3"/>
+<polygon points="1210.00,344.00 1205.00,335.34 1215.00,335.34" fill="#2866c8"/>
+<text x="1225" y="267.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#2866c8">Build / test / push</text>
+<rect x="120" y="444" width="225" height="62" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="120" y="460" width="4" height="30" rx="2" fill="#697c95"/>
+<text x="140" y="474.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#697c95">NAT gateway</text>
+<text x="140" y="496.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#53677e">One outbound gateway</text>
+<rect x="430" y="444" width="430" height="62" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="430" y="460" width="4" height="30" rx="2" fill="#2866c8"/>
+<text x="450" y="475.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">Public Application Load Balancer</text>
+<text x="450" y="496.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#53677e">Spans both public subnets</text>
+<rect x="128" y="636" width="330" height="70" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="128" y="652" width="4" height="38" rx="2" fill="#24755f"/>
+<text x="148" y="667.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#24755f">Private EC2 + Docker</text>
+<text x="148" y="694.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Flask + Gunicorn  /  :8080</text>
+<rect x="540" y="636" width="330" height="70" rx="14" fill="#f6fafc" stroke="#81a5c0" stroke-width="1" stroke-dasharray="8 6"/>
+<rect x="540" y="652" width="4" height="38" rx="2" fill="#81a5c0"/>
+<text x="560" y="666.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#81a5c0">Second EC2 when needed</text>
+<text x="560" y="694.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Optional scale-out capacity</text>
+<rect x="580" y="758" width="335" height="72" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="580" y="774" width="4" height="40" rx="2" fill="#c76b18"/>
+<text x="600" y="788.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#c76b18">DynamoDB gateway endpoint</text>
+<text x="600" y="816.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Attached to both private route tables</text>
+<rect x="1015" y="344" width="385" height="80" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1015" y="360" width="4" height="48" rx="2" fill="#2866c8"/>
+<text x="1035" y="375.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">ECR  /  immutable images</text>
+<text x="1035" y="402.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">EC2 pulls the selected image digest</text>
+<rect x="1015" y="446" width="385" height="80" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1015" y="462" width="4" height="48" rx="2" fill="#c76b18"/>
+<text x="1035" y="476.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#c76b18">Secrets Manager  /  app config</text>
+<text x="1035" y="504.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">KMS  /  aws/secretsmanager</text>
+<rect x="1015" y="548" width="385" height="80" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1015" y="564" width="4" height="48" rx="2" fill="#2866c8"/>
+<text x="1035" y="578.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#2866c8">SSM  /  access + release parameter</text>
+<text x="1035" y="606.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">No inbound SSH port</text>
+<rect x="1015" y="650" width="385" height="80" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1015" y="666" width="4" height="48" rx="2" fill="#2866c8"/>
+<text x="1035" y="680.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#2866c8">CloudWatch  /  logs + dashboard</text>
+<text x="1035" y="708.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Requests + startup logs  /  7 days</text>
+<rect x="1015" y="758" width="385" height="72" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1015" y="774" width="4" height="40" rx="2" fill="#c76b18"/>
+<text x="1035" y="789.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#c76b18">DynamoDB  /  on demand</text>
+<text x="1035" y="816.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">KMS  /  aws/dynamodb</text>
+<text x="96" y="884.28" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#53677e">AWS API egress uses NAT. Database data uses the gateway endpoint and application-role policies.</text>
+<text x="48" y="941.64" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" fill="#142b45">Monitoring &amp; alert delivery</text>
+<polyline points="510,995 615,995" fill="none" stroke="#8054b0" stroke-width="3"/>
+<polygon points="615.00,995.00 606.34,1000.00 606.34,990.00" fill="#8054b0"/>
+<polyline points="885,995 1000,995" fill="none" stroke="#8054b0" stroke-width="3"/>
+<polygon points="1000.00,995.00 991.34,1000.00 991.34,990.00" fill="#8054b0"/>
+<rect x="80" y="956" width="430" height="78" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="80" y="972" width="4" height="46" rx="2" fill="#8054b0"/>
+<text x="100" y="987.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#8054b0">CloudWatch alarm</text>
+<text x="100" y="1014.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">HealthyHostCount &lt; 1  /  2 x 60 seconds</text>
+<rect x="615" y="956" width="270" height="78" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="615" y="972" width="4" height="46" rx="2" fill="#8054b0"/>
+<text x="635" y="987.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#8054b0">SNS topic</text>
+<text x="635" y="1014.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Publish alarm + recovery</text>
+<rect x="1000" y="956" width="390" height="78" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
+<rect x="1000" y="972" width="4" height="46" rx="2" fill="#8054b0"/>
+<text x="1020" y="987.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#8054b0">SQS queue</text>
+<text x="1020" y="1014.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Placeholder for an operations receiver</text>
+<text x="80" y="1082.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#2866c8">Release: main push  -&gt;  build + test  -&gt;  ECR  -&gt;  SSM digest  -&gt;  ASG refresh  -&gt;  /health</text>
+</svg>

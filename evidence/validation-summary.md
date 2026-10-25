@@ -14,7 +14,7 @@ Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
 | Credentials | Source and evidence were scanned for credential patterns. Credential files, state, binary plans, local config, and the assignment PDF are excluded from the submission package. |
 | Dynamic ASG scaling (CPU 70%) | Verified deployed target-tracking configuration, 60-second warmup, and AWS-managed high/low alarms for `compie-dev-asg`. No CPU stress test or actual load-based capacity change was exercised. |
 | CloudWatch dashboard | Verified `compie-dev-dashboard` and its four widgets against live AWS metrics. Terraform output: `dashboard_name = "compie-dev-dashboard"`. Screenshot is in the local submission ZIP only. |
-| Architecture visual diagram | Generated standalone HTML diagrams, supplied in the ZIP. Browser capture of the local file was blocked, so no architecture screenshot is claimed. |
+| Architecture visual diagram | Generated and visually checked a PNG architecture image and editable SVG from the Terraform layout; embedded at the start of the README. Earlier HTML diagrams remain in the ZIP. |
 | Bonus apply | Reviewed saved Terraform plan applied: 2 additions, 0 changes, 0 destroys. The running instance remained healthy and was not replaced. |
 | Bonus CI plan/apply | Commit `f535ec4` passed [push plan 40217331032](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual apply 40217381960](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960). CI applied zero changes and verified database health. Scoped scaling-policy/dashboard permissions were added with user approval; secret-value denial remains unchanged. |
 
