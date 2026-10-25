@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compie Cloud Solutions - DevOps Architecture & Network Topology</title>
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(56, 189, 248, 0.3);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.15);
+      --secondary: #818cf8;
+      --accent: #f43f5e;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --aws-orange: #ff9900;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(129, 140, 248, 0.05) 0%, transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-badge {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ff9900, #f43f5e);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.25);
+    }
+
+    .title-group h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .title-group p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .meta-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .badge.active {
+      color: var(--success);
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .badge.active .badge-dot {
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Diagram Grid Layout */
+    .architecture-canvas {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Section Wrappers */
+    .cloud-perimeter {
+      border: 2px dashed rgba(255, 153, 0, 0.35);
+      border-radius: 20px;
+      padding: 28px;
+      background: rgba(255, 153, 0, 0.015);
+      position: relative;
+    }
+
+    .cloud-perimeter::before {
+      content: "AWS Cloud (Region: il-central-1 Tel Aviv) • Account: 108782097005";
+      position: absolute;
+      top: -14px;
+      left: 24px;
+      background: #181d28;
+      border: 1px solid rgba(255, 153, 0, 0.4);
+      color: var(--aws-orange);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    /* Top Tier: External Actors */
+    .external-tier {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .external-box {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.25s ease;
+    }
+
+    .external-box:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+    }
+
+    .icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .icon-browser {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .icon-github {
+      background: rgba(129, 140, 248, 0.15);
+      color: var(--secondary);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+    }
+
+    .box-info h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .box-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* VPC Container */
+    .vpc-boundary {
+      border: 2px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 28px 24px 24px;
+      background: rgba(15, 23, 42, 0.6);
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .vpc-boundary::before {
+      content: "VPC: compie-dev (10.42.0.0/16) • Multi-AZ (il-central-1a / 1b)";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: #0f172a;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+    }
+
+    /* Subnets Layout */
+    .subnets-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+      .subnets-grid {
+        grid-template-columns: 1fr;
+      }
+      .external-tier {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .subnet-zone {
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .public-subnet {
+      background: rgba(2, 132, 199, 0.05);
+      border: 1px solid rgba(2, 132, 199, 0.25);
+    }
+
+    .public-subnet::before {
+      content: "Public Subnets (10.42.0.0/24 & 10.42.1.0/24) • Route to IGW";
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: #082f49;
+      color: #38bdf8;
+      font-size: 11px;
+      padding: 1px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .private-subnet {
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .private-subnet::before {
+      content: "Private Subnets (10.42.10.0/24 & 10.42.11.0/24) • Isolated • No Public IPs";
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: #064e3b;
+      color: #34d399;
+      font-size: 11px;
+      padding: 1px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    /* Resource Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--bg-card-hover);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .chip-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .chip-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .chip-orange { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .chip-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .card-specs {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    /* Auxiliary Services Tier */
+    .services-tier {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+      .services-tier {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .service-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .group-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Traffic Indicators */
+    .flow-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin: 16px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .arrow {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dim);
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Header Section -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-badge">C</div>
+        <div class="title-group">
+          <h1>Compie DevOps Candidate Assessment</h1>
+          <p>Cloud Architecture, Secure VPC Topology & CI/CD Delivery Pipeline</p>
+        </div>
+      </div>
+
+      <div class="meta-badges">
+        <div class="badge active">
+          <span class="badge-dot"></span>
+          Environment: DEV (LIVE)
+        </div>
+        <div class="badge">
+          Region: il-central-1 (Tel Aviv)
+        </div>
+        <div class="badge">
+          IaC: Terraform 1.13.5
+        </div>
+      </div>
+    </header>
+
+    <!-- Interactive Architecture Canvas -->
+    <div class="architecture-canvas">
+
+      <!-- External Tier: Public Internet & CI/CD -->
+      <div class="external-tier">
+        <div class="external-box">
+          <div class="icon-box icon-browser">&#127760;</div>
+          <div class="box-info">
+            <h3>Public Internet Users</h3>
+            <p>Accesses web UI & <code>/health</code> via HTTP Port 80 to public DNS</p>
+            <span class="chip chip-blue" style="margin-top: 6px; display: inline-block;">http://compie-dev-alb-*.elb.amazonaws.com</span>
+          </div>
+        </div>
+
+        <div class="external-box">
+          <div class="icon-box icon-github">&#9881;</div>
+          <div class="box-info">
+            <h3>GitHub Actions (CI/CD)</h3>
+            <p>OIDC AssumeRole with AWS IAM • Immutable Docker Builds • Rolling Instance Refresh</p>
+            <span class="chip chip-purple" style="margin-top: 6px; display: inline-block;">LiorTal26/Compie-HomeTask @ main</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Traffic Summary Bar -->
+      <div class="flow-bar">
+        <div class="flow-step"><span>Browser</span></div>
+        <span class="arrow">&rarr;</span>
+        <div class="flow-step"><span>Internet Gateway</span></div>
+        <span class="arrow">&rarr;</span>
+        <div class="flow-step"><span>Public ALB (:80)</span></div>
+        <span class="arrow">&rarr;</span>
+        <div class="flow-step"><span>Private EC2 / Docker (:8080)</span></div>
+        <span class="arrow">&rarr;</span>
+        <div class="flow-step"><span>VPC Endpoint</span></div>
+        <span class="arrow">&rarr;</span>
+        <div class="flow-step"><span>DynamoDB (KMS)</span></div>
+      </div>
+
+      <!-- AWS Cloud Perimeter -->
+      <div class="cloud-perimeter">
+
+        <!-- VPC Boundary -->
+        <div class="vpc-boundary">
+
+          <div class="subnets-grid">
+
+            <!-- Public Subnet Zone -->
+            <div class="subnet-zone public-subnet">
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#9875; Internet Gateway (IGW)</div>
+                  <span class="chip chip-blue">0.0.0.0/0</span>
+                </div>
+                <div class="card-desc">Routes inbound traffic from public internet and outbound egress from NAT.</div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#9889; Public ALB (Application Load Balancer)</div>
+                  <span class="chip chip-green">Active (2 AZs)</span>
+                </div>
+                <div class="card-desc">Fronts the private ASG. Exposes port 80 with health checks on <code>/health</code>.</div>
+                <div class="card-specs">
+                  <span>SG: Inbound 0.0.0.0/0:80</span>
+                  <span>Egress: Port 8080 to App SG</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#128279; NAT Gateway (Single EIP)</div>
+                  <span class="chip chip-orange">Egress Only</span>
+                </div>
+                <div class="card-desc">Allows private EC2 instances outbound access for OS updates and container tool downloads.</div>
+                <div class="card-specs">
+                  <span>Subnet: public-1 (il-central-1a)</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Private Subnet Zone -->
+            <div class="subnet-zone private-subnet">
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#9881; Auto Scaling Group (ASG)</div>
+                  <span class="chip chip-green">Min: 1 | Initial: 1 | Max: 2</span>
+                </div>
+                <div class="card-desc">ASG <code>compie-dev-asg</code>. CPU target tracking at 70%, with 60s warmup. Rolling Instance Refresh starts a healthy replacement before terminating the previous instance.</div>
+                <div class="card-specs">
+                  <span>Health Check: ELB (Grace: 300s)</span>
+                  <span>Warmup: 60s</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#128187; EC2 Compute Fleet (Private Instances)</div>
+                  <span class="chip chip-blue">t3.micro • AL2023</span>
+                </div>
+                <div class="card-desc">
+                  <strong>Zero Public IP.</strong> Runs Dockerized Flask container on port 8080 as non-root (<code>appuser</code>).
+                  Managed strictly via AWS Systems Manager (SSM Session Manager).
+                </div>
+                <div class="card-specs">
+                  <span>SG: Inbound 8080 from ALB only</span>
+                  <span>IMDSv2 Required</span>
+                  <span>12 GiB gp3 EBS</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">&#128272; DynamoDB Gateway VPC Endpoint</div>
+                  <span class="chip chip-green">No NAT Cost</span>
+                </div>
+                <div class="card-desc">
+                  Routes all database traffic directly inside the AWS network fabric without traversing the NAT Gateway.
+                  Enforced via IAM Resource Policy.
+                </div>
+                <div class="card-specs">
+                  <span>Service: com.amazonaws.il-central-1.dynamodb</span>
+                  <span>Type: Gateway</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Tier 3: Data, Secrets, Observability & CI/CD Security -->
+        <div class="services-tier">
+
+          <!-- Data & Secrets -->
+          <div class="service-group">
+            <div class="group-title">&#128452; Data Store & Secrets</div>
+            <div class="group-items">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Amazon DynamoDB</div>
+                  <span class="chip chip-orange">Pay-Per-Request</span>
+                </div>
+                <div class="card-desc">Table: <code>compie-dev-items</code>. Partition Key: <code>pk</code>, Sort Key: <code>sk</code>.</div>
+                <div class="card-specs">
+                  <span>Encryption: KMS (aws/dynamodb)</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">AWS Secrets Manager</div>
+                  <span class="chip chip-blue">KMS Encrypted</span>
+                </div>
+                <div class="card-desc">Stores runtime config (<code>welcomeMessage</code>, <code>tableName</code>). Read by EC2 at boot.</div>
+                <div class="card-specs">
+                  <span>Key: aws/secretsmanager</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deployment & Registry -->
+          <div class="service-group">
+            <div class="group-title">&#128640; CI/CD & Registry</div>
+            <div class="group-items">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">Amazon ECR</div>
+                  <span class="chip chip-purple">Immutable</span>
+                </div>
+                <div class="card-desc">Repo: <code>compie-dev</code>. Vulnerability scan on push enabled. Images referenced by sha256 digest.</div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">IAM & GitHub OIDC</div>
+                  <span class="chip chip-green">Least-Privilege</span>
+                </div>
+                <div class="card-desc">Separate roles: CI can push/deploy but cannot read Secrets; EC2 instance cannot push to ECR.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Observability -->
+          <div class="service-group">
+            <div class="group-title">&#128225; Monitoring & Alerting</div>
+            <div class="group-items">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">CloudWatch Logs</div>
+                  <span class="chip chip-blue">7-Day Retention</span>
+                </div>
+                <div class="card-desc"><code>/compie/dev/app</code> (Container stdout/stderr) and <code>/compie/dev/instance</code> (Bootstrap / startup). Dashboard: <code>compie-dev-dashboard</code> shows ALB health / traffic, ASG CPU, DynamoDB capacity / latency, and the alarm threshold.</div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">CloudWatch Alarm & SNS/SQS</div>
+                  <span class="chip chip-orange">Active</span>
+                </div>
+                <div class="card-desc">Fires when HealthyHostCount &lt; 1 for 2 consecutive minutes &rarr; Publishes to SNS &rarr; Fanout to SQS.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <span>Prepared for Compie Cloud Solutions &bull; DevOps Home Assignment</span>
+      <span>Candidate: Lior Tal &bull; Region: il-central-1 &bull; 2026</span>
+    </footer>
+
+  </div>
+
+</body>
+</html>

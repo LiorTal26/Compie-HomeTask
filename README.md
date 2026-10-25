@@ -8,7 +8,40 @@ The second EC2 represents optional scale-out capacity. [Editable diagram](docs/a
 
 [Live application](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com) · [Database health](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960)
 
-Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses were verified at `f535ec4`. The temporary AWS environment may be removed after review.
+Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses were verified at `f535ec4` (and latest on `main`). The temporary AWS environment may be removed after review.
+
+## Requirements & Evaluation Checklist
+
+This project fulfills all mandatory specifications, evaluation criteria, and multiple bonus objectives from the Compie DevOps Home Task:
+
+### Core Requirements
+- [x] **Web Application & Health Check:** Minimalist Flask/Gunicorn app exposing `/` (CRUD items) and `GET /health` (executes live query against DynamoDB; returns 200 or 503).
+- [x] **Containerization:** Digest-pinned Python base, non-root user (`10001`), read-only root filesystem, dropped capabilities (`ALL`), and health check configured.
+- [x] **Cloud Infrastructure (Terraform):** High-availability VPC across two AZs with public subnets (ALB, NAT) and private subnets (EC2 ASG). No public IPs on compute.
+- [x] **Managed Database:** AWS DynamoDB on-demand table with Gateway VPC Endpoint, table IAM resource policy, and KMS encryption at rest (`aws/dynamodb`).
+- [x] **Logging & Traceability:** Application access/error logs streamed via Docker `awslogs` driver to `/compie/dev/app`. System & cloud-init logs streamed to `/compie/dev/instance`.
+- [x] **Alerting Pipeline:** CloudWatch metric alarm on service health (`HealthyHostCount < 1` for 2 periods) wired to SNS topic and dispatched to an SQS queue placeholder.
+- [x] **CI/CD Automation:** GitHub Actions with AWS OIDC temporary credentials (no static access keys). Push to `main` triggers automated build, test, ECR push, and zero-downtime ASG Instance Refresh.
+- [x] **Operational Documentation:** Clear runbook for local execution, initial bootstrap, dev provisioning, rollback, capacity planning, and complete clean teardown.
+
+### Bonus Implementations
+- [x] **CloudWatch Monitoring Dashboard:** Pre-configured `compie-dev-dashboard` with 4 widgets (ALB health/requests, ASG CPU utilization, DynamoDB consumed capacity/latency, and alarm threshold indicator).
+- [x] **Encrypted EBS on Launch Template:** EC2 root volume (`/dev/xvda`, gp3) explicitly encrypted at rest with AWS KMS (`aws/ebs`).
+- [x] **Dynamic Auto Scaling Policy:** `aws_autoscaling_policy` with `TargetTrackingScaling` tracking average ASG CPU at 70%.
+- [x] **PR / Pre-Merge Validation Checks:** Dedicated workflow (`pr-checks.yml`) running `terraform fmt -check`, `terraform validate`, and container unit tests on pull requests without requiring AWS credentials.
+- [x] **Architecture Diagrams & Visual Assets:** Comprehensive visual layouts available in [architecture.html](architecture.html) (interactive), `docs/architecture.png`, and `docs/architecture.svg`.
+- [x] **AI Collaboration & Assessment Artifacts:** Thorough documentation of AI pair programming workflows, validation summaries, and proof logs in `evidence/`.
+- [x] **Modular HTTPS / ACM / Route53 Wiring:** Code implemented in `infra/dev/https.tf` for optional DNS-validated ACM certificates and HTTPS redirection when domain variables are set.
+
+### Alignment with Evaluation Criteria
+| Criterion | Project Implementation & Proof |
+|---|---|
+| **1. Correctness** | Application publicly reachable; `/health` validates live DynamoDB connectivity; automated instance refresh maintains zero downtime. |
+| **2. Elegance / Maintainability** | Clean modular Terraform roots (`infra/bootstrap` vs `infra/dev`), pinned provider/tool versions, strict variable validation, zero hardcoded secrets. |
+| **3. Security** | 100% private compute tier; IMDSv2 enforced; least-privilege IAM policies; Secrets Manager for runtime configuration; KMS encryption across DynamoDB, Secrets, and EBS. |
+| **4. Logging & Monitoring** | Structured JSON logs in CloudWatch Logs; proactive metric alerting wired to SNS/SQS; centralized CloudWatch Dashboard. |
+| **5. Pipeline** | Fully automated delivery on commit to `main`; PR validation gates; OIDC security; immutable digest deployments; verified rollback path. |
+| **6. Documentation** | Complete, reproducible README covering local setup, cloud provisioning, capacity trade-offs, operations, and verified teardown.
 
 ## Run locally
 
