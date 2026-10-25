@@ -37,27 +37,39 @@ flowchart LR
 
 ## Run locally
 
-Python dependencies install inside Docker; no local Python environment is required. Start the Docker Linux engine, then:
+Run these PowerShell commands from the repository root with Docker Desktop using Linux containers. Port `8080` must be available. Python dependencies install inside the image; the local run needs no AWS account or credentials.
+
+Build the image, start DynamoDB Local and the application, then create the local table:
 
 ```powershell
-docker build -t compie-items .
+docker build -t compie-items:local .
 docker network create compie-local
 docker run -d --name compie-db --network compie-local amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb
-docker run -d --name compie-app --network compie-local -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 compie-items
+docker run -d --name compie-app --network compie-local -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 compie-items:local
 docker exec compie-app flask --app app:create_app init-local-db
 ```
 
-Open **http://localhost:8080**. Forms add/delete records and reload the page. `/health` queries DynamoDB and returns `200` or `503`. Input is limited to 200 characters; Jinja escapes user text. The board shows up to 100 recent records.
+Check both required endpoints:
+
+```powershell
+(Invoke-WebRequest -Uri http://127.0.0.1:8080/).StatusCode
+Invoke-RestMethod -Uri http://127.0.0.1:8080/health
+docker inspect compie-app --format '{{.State.Health.Status}}'
+```
+
+Expected: `/` returns `200` and renders the board; `/health` returns `{"status":"ok","database":"ok","version":"local"}`. The version follows the image's `APP_VERSION` build argument. Docker reports `healthy` after its first successful health check; it may initially report `starting`.
+
+Open **http://localhost:8080** in a browser. Add an item, reload to confirm it remains, then delete it. Forms reload the page without browser JavaScript. `/health` makes a real database query and returns `503` if that query fails. Input is limited to 200 characters; Jinja escapes user text. The board shows up to 100 recent records.
 
 The second local container is a disposable **test database**. In AWS, DynamoDB is managed by AWS; only the Flask container runs on EC2. Restarting the app preserves local records. Removing the in-memory DB discards local records.
 
 ```powershell
-docker run --rm --entrypoint python -v "${PWD}/tests:/app/tests:ro" compie-items -m unittest discover -s tests -v
+docker run --rm --entrypoint python -v "${PWD}/tests:/app/tests:ro" compie-items:local -m unittest discover -s tests -v
 docker restart compie-app
 docker logs compie-app
 ```
 
-Local cleanup:
+Local cleanup; use this before repeating the startup commands if the container or network names already exist:
 
 ```powershell
 docker stop compie-app compie-db
@@ -68,10 +80,27 @@ docker network rm compie-local
 On an enterprise network, an existing trusted CA bundle can be mounted during build:
 
 ```powershell
-docker build --secret id=pip_ca,src=PATH_TO_TRUSTED_CA.pem -t compie-items .
+docker build --secret id=pip_ca,src=PATH_TO_TRUSTED_CA.pem -t compie-items:local .
 ```
 
 The optional CA is used only during dependency installation. It is not copied into the image, and certificate verification remains enabled.
+
+### Docker practices
+
+| Choice | Purpose |
+|---|---|
+| Slim Python base pinned by SHA-256 digest | Keeps the selected base image fixed until deliberately updated. |
+| Direct Python dependencies pinned in `requirements.txt` | Controls their versions. Transitive dependencies are resolved by pip during the build. |
+| Copy requirements before application code; `pip --no-cache-dir` | Reuses the dependency layer for code-only changes and avoids retaining pip's download cache. |
+| Allowlist in `.dockerignore`; explicit application copies | Keeps Git history, Terraform state, credentials, evidence, and unrelated files out of the application build context. |
+| `USER appuser`, UID `10001` | Runs the application without root privileges. |
+| Gunicorn with exec-form `CMD`, listening on `8080` | Runs the web server directly as the container process and allows it to receive shutdown signals. |
+| Database-backed `HEALTHCHECK` | Checks application and database readiness. |
+| Read-only root filesystem, writable `/tmp`, dropped capabilities, `no-new-privileges` | Applies the runtime restrictions shown in the local command and EC2 startup configuration. |
+
+A single stage is sufficient for this application: there is no frontend compilation or separate build output to copy into a runtime image. Application request logs go to stderr, which Docker captures.
+
+Recorded local proof: [HTTP checks](evidence/docker-local-http.json), [runtime inspection](evidence/docker-runtime.json), and [browser screenshot](evidence/local-flask.jpg). The evidence was captured from the existing local build tagged `compie-items:local`, with version `flask-local`.
 
 ## Bootstrap AWS and GitHub
 

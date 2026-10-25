@@ -1,0 +1,18 @@
+{
+  "checked_at_utc": "2026-10-25T15:06:43.1706773Z",
+  "environment": "local Docker / DynamoDB Local",
+  "home": {
+    "html": true,
+    "url": "http://127.0.0.1:8080/",
+    "status_code": 200
+  },
+  "health": {
+    "body": {
+      "database": "ok",
+      "status": "ok",
+      "version": "flask-local"
+    },
+    "url": "http://127.0.0.1:8080/health",
+    "status_code": 200
+  }
+}

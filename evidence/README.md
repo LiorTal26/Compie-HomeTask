@@ -16,6 +16,7 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 | [Instance logs](instance-logs.txt) | CloudWatch-collected cloud-init and package installation output. |
 | [Alarm notification](alert-alarm.json), [recovery notification](alert-recovery.json) | CloudWatch state changes received through SNS/SQS. |
 | [Bootstrap record](aws-bootstrap.md), [local checks](local-validation.md), [local screenshot](local-flask.jpg) | Earlier foundation and local application validation. |
+| [Local Docker HTTP checks](docker-local-http.json), [runtime inspection](docker-runtime.json) | Rechecked `/` and `/health` on the host port; healthy non-root container, read-only root filesystem, dropped capabilities, and Gunicorn. |
 
 The alarm JSON files were decoded from the SQS message bodies supplied by the operator. The ALARM occurred during initial provisioning because two metric periods had no data; recovery followed a healthy target. These messages prove delivery of the initial alarm and recovery. They are not the later forced test message with reason `Assignment notification test`, and do not demonstrate a deliberate application outage.
 

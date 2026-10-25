@@ -1,0 +1,44 @@
+{
+  "image": "compie-items:local",
+  "image_id": "sha256:4a0195fcddaf30da1afd76f2f8075c7235439358614c4036e3029e63982ecc0e",
+  "user": "appuser",
+  "read_only_rootfs": true,
+  "capabilities_dropped": [
+    "ALL"
+  ],
+  "security_options": [
+    "no-new-privileges"
+  ],
+  "tmpfs": {
+    "/tmp": ""
+  },
+  "health": "healthy",
+  "healthcheck": [
+    "CMD-SHELL",
+    "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=8)\""
+  ],
+  "command": [
+    "gunicorn",
+    "--bind",
+    "0.0.0.0:8080",
+    "--workers",
+    "2",
+    "--threads",
+    "2",
+    "--timeout",
+    "30",
+    "--graceful-timeout",
+    "20",
+    "--error-logfile",
+    "-",
+    "app:create_app()"
+  ],
+  "ports": {
+    "8080/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "8080"
+      }
+    ]
+  }
+}
