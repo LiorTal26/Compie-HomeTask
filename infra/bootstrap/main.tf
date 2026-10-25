@@ -144,7 +144,8 @@ resource "aws_iam_role_policy" "runtime" {
       { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.app.arn },
       { Effect = "Allow", Action = ["dynamodb:Query", "dynamodb:PutItem", "dynamodb:DeleteItem"], Resource = local.table_arn },
       { Effect = "Allow", Action = ["ssm:GetParameter"], Resource = local.release_arn },
-      { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"], Resource = [local.log_arn, "${local.log_arn}:*"] }
+      { Effect = "Allow", Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogStreams"], Resource = [local.log_arn, "${local.log_arn}:*"] },
+      { Effect = "Allow", Action = ["logs:DescribeLogGroups"], Resource = "*", Condition = { StringEquals = { "aws:RequestedRegion" = var.aws_region } } }
     ]
   })
 }

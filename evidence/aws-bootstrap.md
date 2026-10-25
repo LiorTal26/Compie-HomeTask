@@ -1,6 +1,6 @@
 # AWS bootstrap — October 25, 2026
 
-Account: `314525640319`. Region: `il-central-1`.
+Account: `108782097005`. Region: `il-central-1`.
 
 - Saved plan reviewed: 16 additions, zero changes, zero deletions.
 - Applied: 16 foundation resources, including ECR, state storage, configuration metadata, release parameter, roles, instance profile, and policies.
