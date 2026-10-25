@@ -11,22 +11,6 @@ provider "aws" {
   default_tags { tags = { Project = var.project, Environment = "dev", ManagedBy = "Terraform" } }
 }
 
-variable "aws_region" { default = "il-central-1" }
-variable "project" { default = "compie" }
-variable "instance_type" { default = "t3.micro" }
-variable "domain_name" {
-  type    = string
-  default = ""
-  validation {
-    condition     = (var.domain_name == "") == (var.hosted_zone_id == "")
-    error_message = "Set both domain_name and hosted_zone_id to enable HTTPS, or leave both empty for HTTP."
-  }
-}
-variable "hosted_zone_id" {
-  type    = string
-  default = ""
-}
-
 data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" { state = "available" }
 data "aws_ssm_parameter" "ami" {
@@ -51,14 +35,3 @@ locals {
     "dynamodb:ConditionCheckItem", "dynamodb:PartiQLSelect", "dynamodb:PartiQLInsert", "dynamodb:PartiQLUpdate", "dynamodb:PartiQLDelete"
   ]
 }
-
-output "application_url" { value = local.https_enabled ? "https://${var.domain_name}" : "http://${aws_lb.app.dns_name}" }
-output "asg_name" { value = aws_autoscaling_group.app.name }
-output "target_group_arn" { value = aws_lb_target_group.app.arn }
-output "database_table" { value = aws_dynamodb_table.items.name }
-output "dynamodb_endpoint_id" { value = aws_vpc_endpoint.dynamodb.id }
-output "alarm_name" { value = aws_cloudwatch_metric_alarm.no_healthy_targets.alarm_name }
-output "alert_queue_url" { value = aws_sqs_queue.alerts.url }
-output "application_log_group" { value = aws_cloudwatch_log_group.app.name }
-output "instance_log_group" { value = aws_cloudwatch_log_group.instance.name }
-output "dashboard_name" { value = aws_cloudwatch_dashboard.app.dashboard_name }

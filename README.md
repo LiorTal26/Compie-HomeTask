@@ -97,6 +97,15 @@ terraform -chdir=infra/bootstrap output
 
 Bootstrap creates ECR, the private versioned state bucket, GitHub OIDC roles, the EC2 instance profile, configuration-secret metadata, and the release parameter. Its state stays local: retain it until teardown and exclude it from submission.
 
+### Infrastructure Layout & Modular Organization
+
+Both Terraform roots are modularized into concise, single-responsibility files with minimal and explicit variable definitions (`variables.tf`, `outputs.tf`, `terraform.tfvars.example`):
+
+| Root | Files | Purpose |
+|---|---|---|
+| `infra/bootstrap` | [`main.tf`](infra/bootstrap/main.tf), [`variables.tf`](infra/bootstrap/variables.tf), [`storage.tf`](infra/bootstrap/storage.tf), [`parameters.tf`](infra/bootstrap/parameters.tf), [`iam.tf`](infra/bootstrap/iam.tf), [`outputs.tf`](infra/bootstrap/outputs.tf) | OIDC provider, S3 backend bucket, ECR repository, IAM instance & CI roles, and secret metadata. |
+| `infra/dev` | [`main.tf`](infra/dev/main.tf), [`variables.tf`](infra/dev/variables.tf), [`network.tf`](infra/dev/network.tf), [`compute.tf`](infra/dev/compute.tf), [`data.tf`](infra/dev/data.tf), [`observability.tf`](infra/dev/observability.tf), [`https.tf`](infra/dev/https.tf), [`outputs.tf`](infra/dev/outputs.tf) | VPC, ALB, ASG, DynamoDB + Endpoint, CloudWatch dashboard/alerts, and ACM/HTTPS. |
+
 ### 2. Set runtime configuration and GitHub variables
 
 Populate the secret separately so configuration values stay out of Terraform state:
@@ -135,6 +144,7 @@ terraform -chdir=infra/dev init `
   "-backend-config=region=il-central-1" `
   "-backend-config=encrypt=true" `
   "-backend-config=use_lockfile=true"
+Copy-Item infra/dev/terraform.tfvars.example infra/dev/terraform.tfvars
 terraform -chdir=infra/dev plan "-out=dev.tfplan"
 terraform -chdir=infra/dev apply dev.tfplan
 $url = terraform -chdir=infra/dev output -raw application_url

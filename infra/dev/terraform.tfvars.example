@@ -1,3 +1,12 @@
-# Optional HTTPS. Both values must be supplied together.
-domain_name    = "compie.example.com"
-hosted_zone_id = "Z_YOUR_PUBLIC_HOSTED_ZONE_ID"
+# Target AWS region
+aws_region = "il-central-1"
+
+# Project identifier prefix
+project = "compie"
+
+# EC2 instance type for ASG
+instance_type = "t3.micro"
+
+# Optional HTTPS on custom domain (both values required together, leave empty for HTTP)
+domain_name    = "compie.tal-handassa.com"
+hosted_zone_id = "Z017430816Z4KR56A9ZVE"
