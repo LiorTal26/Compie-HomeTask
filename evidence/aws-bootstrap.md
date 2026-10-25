@@ -10,4 +10,4 @@ Account: `108782097005`. Region: `il-central-1`.
 - IAM simulation: both application and infrastructure CI roles receive `explicitDeny` for `secretsmanager:GetSecretValue`.
 - Post-apply bootstrap plan: no changes.
 
-This verifies bootstrap only. EC2, ALB, VPC/NAT, database runtime access, logs, alerts, and GitHub Actions still require deployment and validation.
+This records the foundation stage. The dev environment and application release were subsequently deployed and verified; see [validation-summary.md](validation-summary.md). A final bootstrap plan also reports no changes in [terraform-bootstrap-plan.txt](terraform-bootstrap-plan.txt).

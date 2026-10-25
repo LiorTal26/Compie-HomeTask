@@ -1,5 +1,7 @@
 # Lean Plan for the Six-Hour Assignment
 
+Historical planning document. The application choice was later simplified to one Python Flask application rendering HTML/CSS and accessing DynamoDB. The implemented application has no Node.js, browser JavaScript, API-only frontend, or Docker Compose. Use [README.md](README.md) for the final design and operating instructions, and [the validation summary](evidence/validation-summary.md) for completed checks.
+
 ## 1. Assessment and scope
 
 **Yes—the earlier plan was heavier than necessary for this assessment.** The extra complexity came mainly from automatic recovery, extensive verification, and bootstrap/state-management procedures. The required AWS services themselves account for much of the work.

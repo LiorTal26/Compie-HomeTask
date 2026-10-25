@@ -1,0 +1,126 @@
+2026-10-25T13:51:46 Cloud-init v. 22.2.2 running 'init' at Sun, 25 Oct 2026 13:50:32 +0000. Up 5.03 seconds.
+2026-10-25T13:51:46 ci-info: ++++++++++++++++++++++++++++++++++++++Net device info+++++++++++++++++++++++++++++++++++++++
+2026-10-25T13:51:46 ci-info: +--------+------+-----------------------------+---------------+--------+-------------------+
+2026-10-25T13:51:46 ci-info: | Device |  Up  |           Address           |      Mask     | Scope  |     Hw-Address    |
+2026-10-25T13:51:46 ci-info: +--------+------+-----------------------------+---------------+--------+-------------------+
+2026-10-25T13:51:46 ci-info: |  ens5  | True |         10.42.10.61         | 255.255.255.0 | global | 06:ff:d5:da:a1:11 |
+2026-10-25T13:51:46 ci-info: |  ens5  | True | fe80::4ff:d5ff:feda:a111/64 |       .       |  link  | 06:ff:d5:da:a1:11 |
+2026-10-25T13:51:46 ci-info: |   lo   | True |          127.0.0.1          |   255.0.0.0   |  host  |         .         |
+2026-10-25T13:51:46 ci-info: |   lo   | True |           ::1/128           |       .       |  host  |         .         |
+2026-10-25T13:51:46 ci-info: +--------+------+-----------------------------+---------------+--------+-------------------+
+2026-10-25T13:51:46 ci-info: +++++++++++++++++++++++++++++Route IPv4 info++++++++++++++++++++++++++++++
+2026-10-25T13:51:46 ci-info: +-------+-------------+------------+-----------------+-----------+-------+
+2026-10-25T13:51:46 ci-info: | Route | Destination |  Gateway   |     Genmask     | Interface | Flags |
+2026-10-25T13:51:46 ci-info: +-------+-------------+------------+-----------------+-----------+-------+
+2026-10-25T13:51:46 ci-info: |   0   |   0.0.0.0   | 10.42.10.1 |     0.0.0.0     |    ens5   |   UG  |
+2026-10-25T13:51:46 ci-info: |   1   |  10.42.0.2  | 10.42.10.1 | 255.255.255.255 |    ens5   |  UGH  |
+2026-10-25T13:51:46 ci-info: |   2   |  10.42.10.0 |  0.0.0.0   |  255.255.255.0  |    ens5   |   U   |
+2026-10-25T13:51:46 ci-info: |   3   |  10.42.10.1 |  0.0.0.0   | 255.255.255.255 |    ens5   |   UH  |
+2026-10-25T13:51:46 ci-info: +-------+-------------+------------+-----------------+-----------+-------+
+2026-10-25T13:51:46 ci-info: +++++++++++++++++++Route IPv6 info+++++++++++++++++++
+2026-10-25T13:51:46 ci-info: +-------+-------------+---------+-----------+-------+
+2026-10-25T13:51:46 ci-info: | Route | Destination | Gateway | Interface | Flags |
+2026-10-25T13:51:46 ci-info: +-------+-------------+---------+-----------+-------+
+2026-10-25T13:51:46 ci-info: |   0   |  fe80::/64  |    ::   |    ens5   |   U   |
+2026-10-25T13:51:46 ci-info: |   2   |    local    |    ::   |    ens5   |   U   |
+2026-10-25T13:51:46 ci-info: |   3   |  multicast  |    ::   |    ens5   |   U   |
+2026-10-25T13:51:46 ci-info: +-------+-------------+---------+-----------+-------+
+2026-10-25T13:51:46 Generating public/private ed25519 key pair.
+2026-10-25T13:51:46 Your identification has been saved in /etc/ssh/ssh_host_ed25519_key
+2026-10-25T13:51:46 Your public key has been saved in /etc/ssh/ssh_host_ed25519_key.pub
+2026-10-25T13:51:46 The key fingerprint is:
+2026-10-25T13:51:46 SHA256:iDypzsw9elrN3LsJqy5Gke3TE5ULPMbbZ0sabHMoTjQ root@ip-10-42-10-61.il-central-1.compute.internal
+2026-10-25T13:51:46 The key's randomart image is:
+2026-10-25T13:51:46 +--[ED25519 256]--+
+2026-10-25T13:51:46 |     o   .       |
+2026-10-25T13:51:46 |      E o        |
+2026-10-25T13:51:46 |   o o O o       |
+2026-10-25T13:51:46 |  o..o=.O =      |
+2026-10-25T13:51:46 |   o=+.+SO .     |
+2026-10-25T13:51:46 |  ..o=+.. .      |
+2026-10-25T13:51:46 | .. ..=..        |
+2026-10-25T13:51:46 | =ooo  o o       |
+2026-10-25T13:51:46 | .B*+o. +.       |
+2026-10-25T13:51:46 +----[SHA256]-----+
+2026-10-25T13:51:46 Generating public/private ecdsa key pair.
+2026-10-25T13:51:46 Your identification has been saved in /etc/ssh/ssh_host_ecdsa_key
+2026-10-25T13:51:46 Your public key has been saved in /etc/ssh/ssh_host_ecdsa_key.pub
+2026-10-25T13:51:46 The key fingerprint is:
+2026-10-25T13:51:46 SHA256:oJYMuVOCGC4jIkevP35P23c8lqtJPjv/xriosrRcGog root@ip-10-42-10-61.il-central-1.compute.internal
+2026-10-25T13:51:46 The key's randomart image is:
+2026-10-25T13:51:46 +---[ECDSA 256]---+
+2026-10-25T13:51:46 |. .              |
+2026-10-25T13:51:46 |o+ o             |
+2026-10-25T13:51:46 |O.= o .          |
+2026-10-25T13:51:46 |=o B o .         |
+2026-10-25T13:51:46 |  + =   S        |
+2026-10-25T13:51:46 |   + . .         |
+2026-10-25T13:51:46 |    E . + . .. + |
+2026-10-25T13:51:46 |   . ..+.B o+oB o|
+2026-10-25T13:51:46 |    .. .Booo*O+*.|
+2026-10-25T13:51:46 +----[SHA256]-----+
+2026-10-25T13:51:46 Cloud-init v. 22.2.2 running 'modules:config' at Sun, 25 Oct 2026 13:50:34 +0000. Up 7.01 seconds.
+2026-10-25T13:51:46 Cloud-init v. 22.2.2 running 'modules:final' at Sun, 25 Oct 2026 13:50:34 +0000. Up 7.54 seconds.
+2026-10-25T13:51:46 Amazon Linux 2023 repository                     74 MB/s |  86 MB     00:01
+2026-10-25T13:51:46 Amazon Linux 2023 Kernel Livepatch repository   764 kB/s |  89 kB     00:00
+2026-10-25T13:51:46 Dependencies resolved.
+2026-10-25T13:51:46 ================================================================================
+ Package                  Arch    Version                    Repository    Size
+2026-10-25T13:51:46 ================================================================================
+2026-10-25T13:51:46 Installing:
+ amazon-cloudwatch-agent  x86_64  1.300071.0-1.amzn2023      amazonlinux   71 M
+ docker                   x86_64  25.0.18-1.amzn2023.0.2     amazonlinux   49 M
+2026-10-25T13:51:46 Installing dependencies:
+ container-selinux        noarch  4:2.245.0-1.amzn2023       amazonlinux   58 k
+ containerd               x86_64  2.3.7-1.amzn2023.0.1       amazonlinux   24 M
+ iptables-libs            x86_64  1.8.8-3.amzn2023.0.2       amazonlinux  401 k
+ iptables-nft             x86_64  1.8.8-3.amzn2023.0.2       amazonlinux  183 k
+ libcgroup                x86_64  3.0-1.amzn2023.0.1         amazonlinux   75 k
+ libnetfilter_conntrack   x86_64  1.0.8-2.amzn2023.0.2       amazonlinux   58 k
+ libnfnetlink             x86_64  1.0.1-19.amzn2023.0.2      amazonlinux   30 k
+ libnftnl                 x86_64  1.2.2-2.amzn2023.0.2       amazonlinux   84 k
+ pigz                     x86_64  2.5-1.amzn2023.0.4         amazonlinux   83 k
+ runc                     x86_64  1.4.3-1.amzn2023.0.3       amazonlinux  3.7 M
+2026-10-25T13:51:46 Transaction Summary
+2026-10-25T13:51:46 ================================================================================
+2026-10-25T13:51:46 Install  12 Packages
+2026-10-25T13:51:46 Total download size: 148 M
+2026-10-25T13:51:46 Installed size: 535 M
+2026-10-25T13:51:46 Downloading Packages:
+2026-10-25T13:51:46 (1/12): container-selinux-2.245.0-1.amzn2023.no 2.1 MB/s |  58 kB     00:00
+2026-10-25T13:51:46 (2/12): containerd-2.3.7-1.amzn2023.0.1.x86_64.  70 MB/s |  24 MB     00:00
+2026-10-25T13:51:46 (3/12): iptables-libs-1.8.8-3.amzn2023.0.2.x86_ 9.8 MB/s | 401 kB     00:00
+2026-10-25T13:51:46 (4/12): iptables-nft-1.8.8-3.amzn2023.0.2.x86_6 6.2 MB/s | 183 kB     00:00
+2026-10-25T13:51:46 (5/12): libcgroup-3.0-1.amzn2023.0.1.x86_64.rpm 2.4 MB/s |  75 kB     00:00
+2026-10-25T13:51:46 (6/12): libnetfilter_conntrack-1.0.8-2.amzn2023 2.0 MB/s |  58 kB     00:00
+2026-10-25T13:51:46 (7/12): libnfnetlink-1.0.1-19.amzn2023.0.2.x86_ 1.1 MB/s |  30 kB     00:00
+2026-10-25T13:51:46 (8/12): libnftnl-1.2.2-2.amzn2023.0.2.x86_64.rp 3.4 MB/s |  84 kB     00:00
+2026-10-25T13:51:46 (9/12): docker-25.0.18-1.amzn2023.0.2.x86_64.rp  72 MB/s |  49 MB     00:00
+2026-10-25T13:51:46 (10/12): pigz-2.5-1.amzn2023.0.4.x86_64.rpm     481 kB/s |  83 kB     00:00
+2026-10-25T13:51:46 (11/12): runc-1.4.3-1.amzn2023.0.3.x86_64.rpm    61 MB/s | 3.7 MB     00:00
+2026-10-25T13:51:46 (12/12): amazon-cloudwatch-agent-1.300071.0-1.a  68 MB/s |  71 MB     00:01
+2026-10-25T13:51:46 --------------------------------------------------------------------------------
+2026-10-25T13:51:46 Total                                           135 MB/s | 148 MB     00:01
+2026-10-25T13:51:46 Running transaction check
+2026-10-25T13:51:46 Transaction check succeeded.
+2026-10-25T13:51:46 Running transaction test
+2026-10-25T13:51:46 Transaction test succeeded.
+2026-10-25T13:51:46 Running transaction
+  Preparing        :                                                        1/1
+  Installing       : runc-1.4.3-1.amzn2023.0.3.x86_64                      1/12
+  Installing       : containerd-2.3.7-1.amzn2023.0.1.x86_64                2/12
+  Running scriptlet: containerd-2.3.7-1.amzn2023.0.1.x86_64                2/12
+  Installing       : pigz-2.5-1.amzn2023.0.4.x86_64                        3/12
+  Installing       : libnftnl-1.2.2-2.amzn2023.0.2.x86_64                  4/12
+  Installing       : libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64             5/12
+  Installing       : libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64    6/12
+  Installing       : iptables-libs-1.8.8-3.amzn2023.0.2.x86_64             7/12
+  Installing       : iptables-nft-1.8.8-3.amzn2023.0.2.x86_64              8/12
+  Running scriptlet: iptables-nft-1.8.8-3.amzn2023.0.2.x86_64              8/12
+  Installing       : libcgroup-3.0-1.amzn2023.0.1.x86_64                   9/12
+  Running scriptlet: container-selinux-4:2.245.0-1.amzn2023.noarch        10/12
+  Installing       : container-selinux-4:2.245.0-1.amzn2023.noarch        10/12
+  Running scriptlet: container-selinux-4:2.245.0-1.amzn2023.noarch        10/12
+  Running scriptlet: docker-25.0.18-1.amzn2023.0.2.x86_64                 11/12
+  Installing       : docker-25.0.18-1.amzn2023.0.2.x86_64                 11/12
+  Running scriptlet: docker-25.0.18-1.amzn2023.0.2.x86_64                 11/12

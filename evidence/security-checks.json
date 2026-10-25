@@ -1,0 +1,34 @@
+{
+  "database_encryption": {
+    "Status": "ENABLED",
+    "SSEType": "KMS",
+    "KMSMasterKeyArn": "arn:aws:kms:il-central-1:108782097005:key/b64bd3b3-18d3-4cca-b452-c1f838fdcd83"
+  },
+  "checked_at_utc": "2026-10-25T14:57:46.9626721Z",
+  "instances": {
+    "InstanceId": "i-03754e3b267dd4806",
+    "State": "running",
+    "PrivateIp": "10.42.11.22",
+    "PublicIp": null,
+    "SubnetId": "subnet-0a44121f31d62e783"
+  },
+  "ci_secret_access": [
+    {
+      "decision": "explicitDeny",
+      "action": "secretsmanager:GetSecretValue",
+      "role": "arn:aws:iam::108782097005:role/compie-dev-application-ci"
+    },
+    {
+      "decision": "explicitDeny",
+      "action": "secretsmanager:GetSecretValue",
+      "role": "arn:aws:iam::108782097005:role/compie-dev-infrastructure-ci"
+    }
+  ],
+  "region": "il-central-1",
+  "account": "108782097005",
+  "configuration_kms_key": {
+    "Arn": "arn:aws:kms:il-central-1:108782097005:key/9f03842c-68db-4370-b658-dcf6756df22a",
+    "KeyManager": "AWS",
+    "KeyState": "Enabled"
+  }
+}

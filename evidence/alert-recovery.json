@@ -1,0 +1,44 @@
+{
+  "AlarmName": "compie-dev-no-healthy-targets",
+  "AlarmDescription": "No healthy application targets for two consecutive minutes.",
+  "AWSAccountId": "108782097005",
+  "AlarmConfigurationUpdatedTimestamp": "2026-10-25T13:50:15.788+0000",
+  "Region": "Israel (Tel Aviv)",
+  "AlarmArn": "arn:aws:cloudwatch:il-central-1:108782097005:alarm:compie-dev-no-healthy-targets",
+  "ActionExecutedAfterMuteWindow": false,
+  "OKActions": [
+    "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+  ],
+  "AlarmActions": [
+    "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+  ],
+  "InsufficientDataActions": [],
+  "Trigger": {
+    "MetricName": "HealthyHostCount",
+    "Namespace": "AWS/ApplicationELB",
+    "StatisticType": "Statistic",
+    "Statistic": "MINIMUM",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "value": "targetgroup/compie-dev-app/8162e614afd8d4b4",
+        "name": "TargetGroup"
+      },
+      {
+        "value": "app/compie-dev-alb/045f746927b3561c",
+        "name": "LoadBalancer"
+      }
+    ],
+    "Period": 60,
+    "EvaluationPeriods": 2,
+    "DatapointsToAlarm": 2,
+    "ComparisonOperator": "LessThanThreshold",
+    "Threshold": 1,
+    "TreatMissingData": "breaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "OldStateValue": "ALARM",
+  "NewStateValue": "OK",
+  "NewStateReason": "Threshold Crossed: 1 out of the last 2 datapoints [1.0 (25/10/26 13:52:00)] was not less than the threshold (1.0) (minimum 1 datapoint for ALARM -> OK transition).",
+  "StateChangeTime": "2026-10-25T13:55:50.359+0000"
+}

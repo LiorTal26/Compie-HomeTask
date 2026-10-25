@@ -2,7 +2,11 @@
 
 One Flask application serves HTML/CSS, handles add/delete forms, and accesses DynamoDB. No browser JavaScript, Node.js, npm, Docker Compose, or standalone scripts directory is needed.
 
-**Current validation:** the app has been built and tested locally against DynamoDB Local. The AWS bootstrap foundation has been applied and checked for drift; both CI roles are explicitly denied secret-value access. EC2/ALB deployment and GitHub Actions execution are the next stages. See `evidence/local-validation.md` and `evidence/aws-bootstrap.md`.
+**Verified on October 25, 2026:** the application is deployed on AWS. A GitHub Actions release built and tested the image, pushed it to ECR, replaced the private EC2 instance, and passed the public database health check. Both Terraform roots subsequently reported no changes.
+
+Live application: [Items Board](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com). The environment is temporary and may be removed after review.
+
+The successful [Application run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40201715332) was manually dispatched. Push-based deployment is configured but was not separately demonstrated. See the [evidence index](evidence/README.md) for results and verification limits.
 
 ## Project
 
@@ -14,6 +18,22 @@ One Flask application serves HTML/CSS, handles add/delete forms, and accesses Dy
 - `tests`: behavior checks, run inside the application image.
 
 Request path: **browser → public ALB → private EC2/ASG → DynamoDB gateway endpoint**. Region: `il-central-1`.
+
+```mermaid
+flowchart LR
+    Browser --> ALB["Public ALB"]
+    ALB --> EC2["Private EC2 / ASG: 1 / 1 / 2"]
+    EC2 --> Endpoint["DynamoDB gateway endpoint"]
+    Endpoint --> Database["DynamoDB"]
+    Actions["GitHub Actions / OIDC"] --> ECR
+    Actions --> Release["SSM release parameter / ASG refresh"]
+    Release --> EC2
+    ECR --> EC2
+    Config["Secrets Manager"] --> EC2
+    EC2 --> Logs["CloudWatch Logs"]
+    ALB --> Alarm["CloudWatch alarm"]
+    Alarm --> SNS --> SQS
+```
 
 ## Run locally
 
@@ -64,7 +84,7 @@ Prerequisites: AWS CLI v2, Terraform **1.13.5**, Docker, Git, and permission to 
 
    ```powershell
    terraform -chdir=infra/bootstrap init
-   terraform -chdir=infra/bootstrap plan -out=bootstrap.tfplan
+   terraform -chdir=infra/bootstrap plan "-out=bootstrap.tfplan"
    terraform -chdir=infra/bootstrap apply bootstrap.tfplan
    terraform -chdir=infra/bootstrap output
    ```
@@ -104,7 +124,7 @@ To operate Terraform locally, initialize the same dev backend:
 ```powershell
 $bucket = terraform -chdir=infra/bootstrap output -raw state_bucket
 terraform -chdir=infra/dev init -backend-config="bucket=$bucket" -backend-config="key=dev/terraform.tfstate" -backend-config="region=il-central-1" -backend-config="encrypt=true" -backend-config="use_lockfile=true"
-terraform -chdir=infra/dev plan -out=dev.tfplan
+terraform -chdir=infra/dev plan "-out=dev.tfplan"
 terraform -chdir=infra/dev apply dev.tfplan
 terraform -chdir=infra/dev output
 ```
@@ -151,18 +171,23 @@ If already ALARM, wait for healthy metrics to restore OK before testing that tra
 
 ## Submission and teardown
 
-Verify live forms and `/health`, persistence across replacement, a commit-to-live release, rollback, private networking, restricted DB access, usable logs, KMS settings, and alert receipt. Check a final Terraform plan for unexpected drift.
+The saved evidence covers the live page and database health, a manually dispatched release, EC2 replacement, private addressing, CI secret-access denial, KMS settings, CloudWatch logs, SNS/SQS delivery, and final Terraform plans with no changes. Rollback and preservation of a specific AWS record across replacement were not separately exercised. The exact verification scope is recorded in [the validation summary](evidence/validation-summary.md).
 
-Save actual screenshots/results under `evidence/`, including the browser showing the public URL while live. Commit source and sanitized evidence, then package tracked files:
+Commit source and sanitized evidence, then package tracked files with a portable copy of Git history:
 
 ```powershell
 git add .
-git commit -m "Implement Flask application and AWS delivery"
+git commit -m "Document verified AWS release and submission evidence"
 New-Item -ItemType Directory -Path output -Force
-git archive --format=zip --output=output/compie-devops-assignment.zip HEAD
+git archive --format=zip --output=output/compie-devops-submission.zip HEAD
+git bundle create output/git-history.bundle --all
+git bundle verify output/git-history.bundle
+Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/compie-devops-submission.zip -Update
 ```
 
-Ignored credentials, state, plans, tools, local config, and the assignment PDF are excluded. Inspect the ZIP before submission.
+The ZIP contains the committed source, evidence, and `git-history.bundle`. After extracting, reviewers can restore the repository with `git clone -b main ./git-history.bundle review-copy`. The bundle preserves commit history without copying this machine's Git configuration.
+
+Credentials, Terraform state and binary plans, tools, local configuration, and the assignment PDF are excluded. The evidence includes text output from Terraform plans, which contains no state file or secret value. Inspect the ZIP before submission.
 
 ASG min/desired/max is **1/1/2**. It repairs failures; CPU-based scaling is deferred. One steady instance and one NAT gateway reduce cost but expose the environment to instance/AZ failures. More steady instances and per-AZ NAT improve availability.
 
@@ -171,9 +196,9 @@ ALB, NAT, IPv4, EC2/EBS, requests, logs, and Secrets Manager can incur charges. 
 Stop new deployments. Using the local operator identity and initialized backend:
 
 ```powershell
-terraform -chdir=infra/dev plan -destroy -out=destroy.tfplan
+terraform -chdir=infra/dev plan -destroy "-out=destroy.tfplan"
 terraform -chdir=infra/dev apply destroy.tfplan
-terraform -chdir=infra/bootstrap plan -destroy -out=destroy.tfplan
+terraform -chdir=infra/bootstrap plan -destroy "-out=destroy.tfplan"
 terraform -chdir=infra/bootstrap apply destroy.tfplan
 ```
 

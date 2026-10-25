@@ -1,0 +1,102 @@
+{
+  "repository": "LiorTal26/Compie-HomeTask",
+  "run_id": 40201715332,
+  "url": "https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40201715332",
+  "event": "workflow_dispatch",
+  "branch": "main",
+  "commit": "31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-10-25T14:19:49Z",
+  "updated_at": "2026-10-25T14:25:35Z",
+  "jobs": [
+    {
+      "id": 121194100819,
+      "name": "release",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 40201715332,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Validate settings",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Build and test the Flask container",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Container diagnostics",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Stop test containers",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Push or select image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Release through ASG Instance Refresh",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Verify public page and DB health",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Run aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    }
+  ]
+}

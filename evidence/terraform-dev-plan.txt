@@ -1,0 +1,53 @@
+aws_cloudwatch_log_group.app: Refreshing state... [id=/compie/dev/app]
+aws_cloudwatch_log_group.instance: Refreshing state... [id=/compie/dev/instance]
+aws_sqs_queue.alerts: Refreshing state... [id=https://sqs.il-central-1.amazonaws.com/108782097005/compie-dev-alerts]
+data.aws_ssm_parameter.ami: Reading...
+data.aws_secretsmanager_secret.app: Reading...
+aws_sns_topic.alerts: Refreshing state... [id=arn:aws:sns:il-central-1:108782097005:compie-dev-alerts]
+data.aws_availability_zones.available: Reading...
+aws_vpc.main: Refreshing state... [id=vpc-060c887f56b60ed3b]
+data.aws_caller_identity.current: Reading...
+aws_eip.nat: Refreshing state... [id=eipalloc-061ea8382f6c3cbc5]
+data.aws_caller_identity.current: Read complete after 0s [id=108782097005]
+aws_dynamodb_table.items: Refreshing state... [id=compie-dev-items]
+data.aws_ssm_parameter.ami: Read complete after 0s [id=/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64]
+data.aws_secretsmanager_secret.app: Read complete after 0s [id=arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-d6KRfp]
+data.aws_availability_zones.available: Read complete after 0s [id=il-central-1]
+aws_sns_topic_policy.alerts: Refreshing state... [id=arn:aws:sns:il-central-1:108782097005:compie-dev-alerts]
+aws_sqs_queue_policy.alerts: Refreshing state... [id=https://sqs.il-central-1.amazonaws.com/108782097005/compie-dev-alerts]
+aws_sns_topic_subscription.alerts: Refreshing state... [id=arn:aws:sns:il-central-1:108782097005:compie-dev-alerts:9f480f9f-de0f-4d93-837d-9bad29df4d17]
+aws_internet_gateway.main: Refreshing state... [id=igw-00a08c0f434c2bf8b]
+aws_route_table.private[1]: Refreshing state... [id=rtb-0695ed0a1b8cb0476]
+aws_lb_target_group.app: Refreshing state... [id=arn:aws:elasticloadbalancing:il-central-1:108782097005:targetgroup/compie-dev-app/8162e614afd8d4b4]
+aws_subnet.private[1]: Refreshing state... [id=subnet-0a44121f31d62e783]
+aws_subnet.public[0]: Refreshing state... [id=subnet-00d0df995478418c0]
+aws_subnet.private[0]: Refreshing state... [id=subnet-0e909b27a3ba1fd43]
+aws_security_group.app: Refreshing state... [id=sg-0807fc74245455956]
+aws_security_group.alb: Refreshing state... [id=sg-0a04650cf0f8091c1]
+aws_route_table.public: Refreshing state... [id=rtb-0478543ffa0e16f6b]
+aws_subnet.public[1]: Refreshing state... [id=subnet-05800b5995e1c8ea8]
+aws_route_table.private[0]: Refreshing state... [id=rtb-00660264c7b48984f]
+aws_vpc_security_group_ingress_rule.http: Refreshing state... [id=sgr-051948a694c918d7d]
+aws_route.internet: Refreshing state... [id=r-rtb-0478543ffa0e16f6b1080289494]
+aws_vpc_security_group_egress_rule.https: Refreshing state... [id=sgr-0c45fff31e313e99d]
+aws_vpc_security_group_egress_rule.alb_to_app: Refreshing state... [id=sgr-07737da4d555b9b88]
+aws_launch_template.app: Refreshing state... [id=lt-0ed9d82c955628e13]
+aws_vpc_security_group_ingress_rule.app: Refreshing state... [id=sgr-00d97b05d3a876bd7]
+aws_vpc_endpoint.dynamodb: Refreshing state... [id=vpce-09e35ac7b0781a639]
+aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-0adefd3db6ae94151]
+aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-09d8b58115159f9e9]
+aws_lb.app: Refreshing state... [id=arn:aws:elasticloadbalancing:il-central-1:108782097005:loadbalancer/app/compie-dev-alb/045f746927b3561c]
+aws_nat_gateway.main: Refreshing state... [id=nat-05bb720f8fbf50a38]
+aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-05d2b342159488785]
+aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-0af0d26c1c0c5ad1a]
+aws_route.nat[1]: Refreshing state... [id=r-rtb-0695ed0a1b8cb04761080289494]
+aws_route.nat[0]: Refreshing state... [id=r-rtb-00660264c7b48984f1080289494]
+aws_dynamodb_resource_policy.items: Refreshing state... [id=arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items]
+aws_cloudwatch_metric_alarm.no_healthy_targets: Refreshing state... [id=compie-dev-no-healthy-targets]
+aws_lb_listener.http: Refreshing state... [id=arn:aws:elasticloadbalancing:il-central-1:108782097005:listener/app/compie-dev-alb/045f746927b3561c/3497708c146fe604]
+aws_autoscaling_group.app: Refreshing state... [id=compie-dev-asg]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.

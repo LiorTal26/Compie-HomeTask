@@ -1,0 +1,23 @@
+data.aws_caller_identity.current: Reading...
+aws_secretsmanager_secret.app: Refreshing state... [id=arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-d6KRfp]
+aws_iam_role.application_ci: Refreshing state... [id=compie-dev-application-ci]
+aws_iam_role.instance: Refreshing state... [id=compie-dev-instance]
+aws_iam_role.infrastructure_ci: Refreshing state... [id=compie-dev-infrastructure-ci]
+aws_ssm_parameter.release: Refreshing state... [id=/compie/dev/release-image]
+aws_ecr_repository.app: Refreshing state... [id=compie-dev]
+data.aws_caller_identity.current: Read complete after 0s [id=108782097005]
+aws_s3_bucket.state: Refreshing state... [id=compie-dev-tfstate-108782097005-il-central-1]
+aws_s3_bucket_policy.state: Refreshing state... [id=compie-dev-tfstate-108782097005-il-central-1]
+aws_s3_bucket_public_access_block.state: Refreshing state... [id=compie-dev-tfstate-108782097005-il-central-1]
+aws_s3_bucket_versioning.state: Refreshing state... [id=compie-dev-tfstate-108782097005-il-central-1]
+aws_s3_bucket_server_side_encryption_configuration.state: Refreshing state... [id=compie-dev-tfstate-108782097005-il-central-1]
+aws_iam_role_policy_attachment.ssm: Refreshing state... [id=compie-dev-instance/arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore]
+aws_iam_instance_profile.app: Refreshing state... [id=compie-dev-instance]
+aws_iam_role_policy.runtime: Refreshing state... [id=compie-dev-instance:terraform-20261025130223922900000002]
+aws_iam_role_policy.infrastructure_ci: Refreshing state... [id=compie-dev-infrastructure-ci:terraform-20261025130224867900000004]
+aws_iam_role_policy.application_ci: Refreshing state... [id=compie-dev-application-ci:terraform-20261025130223934700000003]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.

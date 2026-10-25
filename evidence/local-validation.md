@@ -1,6 +1,6 @@
 # Local validation — October 25, 2026
 
-These results apply to the local Docker environment. At the time of these checks, no AWS infrastructure had been provisioned and no GitHub Actions run had been performed. Subsequent bootstrap results are recorded in `aws-bootstrap.md`.
+These results apply to the local Docker environment before AWS provisioning. Later AWS results are recorded in [validation-summary.md](validation-summary.md).
 
 | Check | Result |
 |---|---|
@@ -14,12 +14,12 @@ These results apply to the local Docker environment. At the time of these checks
 | Browser add/delete | Submitted an HTML form, saw the new item, and deleted the earlier persistence-test item through its form. |
 | Browser JavaScript | No JavaScript files or script elements. |
 | Terraform | Both roots passed `terraform validate`; recursive formatting check passed. |
-| GitHub Actions definitions | Both passed actionlint 1.7.7. Execution/OIDC/rollout remain unverified. |
+| GitHub Actions definitions | Both passed actionlint 1.7.7. This local check did not execute workflows; the later successful Application run is recorded separately. |
 
 Local preview: http://localhost:8080
 
 ![Local Flask application](local-flask.jpg)
 
-## Deferred AWS verification
+## Subsequent AWS verification
 
-Live ALB URL, private EC2 placement, ECR release, GitHub OIDC authentication, instance refresh/rollback, DynamoDB endpoint enforcement, CloudWatch logs, KMS configuration, alert delivery, and teardown require an actual AWS deployment.
+The live application, private EC2 placement, ECR release, OIDC authentication, instance refresh, CloudWatch logs, KMS settings, and SNS/SQS receipt have subsequent evidence in this directory. Manual rollback, an explicit database access-denial test outside the endpoint, and teardown have not been exercised as part of this final evidence pass.
