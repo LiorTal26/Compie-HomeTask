@@ -6,9 +6,9 @@ A small Flask application with server-rendered HTML, DynamoDB storage, and GitHu
 
 The second EC2 represents optional scale-out capacity. [Editable diagram](docs/architecture.svg).
 
-[Live application](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com) · [Database health](http://compie-dev-alb-783445311.il-central-1.elb.amazonaws.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960)
+[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960)
 
-Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses were verified at `f535ec4` (and latest on `main`). The temporary AWS environment may be removed after review.
+Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses and live HTTPS were verified on `main`. The temporary AWS environment may be removed after review.
 
 ## Requirements & Evaluation Checklist
 
@@ -25,13 +25,13 @@ This project fulfills all mandatory specifications, evaluation criteria, and mul
 - [x] **Operational Documentation:** Clear runbook for local execution, initial bootstrap, dev provisioning, rollback, capacity planning, and complete clean teardown.
 
 ### Bonus Implementations
-- [x] **CloudWatch Monitoring Dashboard:** Pre-configured `compie-dev-dashboard` with 4 widgets (ALB health/requests, ASG CPU utilization, DynamoDB consumed capacity/latency, and alarm threshold indicator).
+- [x] **HTTPS on Public Endpoint:** DNS-validated AWS ACM certificate on custom subdomain [`https://compie.tal-handassa.com`](https://compie.tal-handassa.com), ALB HTTPS listener (TLS 1.3/1.2), and automatic HTTP 301 redirection.
 - [x] **Encrypted EBS on Launch Template:** EC2 root volume (`/dev/xvda`, gp3) explicitly encrypted at rest with AWS KMS (`aws/ebs`).
 - [x] **Dynamic Auto Scaling Policy:** `aws_autoscaling_policy` with `TargetTrackingScaling` tracking average ASG CPU at 70%.
+- [x] **CloudWatch Monitoring Dashboard:** Pre-configured `compie-dev-dashboard` with 4 widgets (ALB health/requests, ASG CPU utilization, DynamoDB consumed capacity/latency, and alarm threshold indicator).
 - [x] **PR / Pre-Merge Validation Checks:** Dedicated workflow (`pr-checks.yml`) running `terraform fmt -check`, `terraform validate`, and container unit tests on pull requests without requiring AWS credentials.
 - [x] **Architecture Diagrams & Visual Assets:** Comprehensive visual layouts available in [architecture.html](architecture.html) (interactive), `docs/architecture.png`, and `docs/architecture.svg`.
 - [x] **AI Collaboration & Assessment Artifacts:** Thorough documentation of AI pair programming workflows, validation summaries, and proof logs in `evidence/`.
-- [x] **Modular HTTPS / ACM / Route53 Wiring:** Code implemented in `infra/dev/https.tf` for optional DNS-validated ACM certificates and HTTPS redirection when domain variables are set.
 
 ### Alignment with Evaluation Criteria
 | Criterion | Project Implementation & Proof |
