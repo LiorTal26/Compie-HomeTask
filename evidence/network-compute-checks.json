@@ -1,0 +1,373 @@
+{
+  "account": "108782097005",
+  "region": "il-central-1",
+  "checked_at_utc": "2026-10-25T15:12:15.5094531Z",
+  "asg": {
+    "max": 2,
+    "launch_template": {
+      "LaunchTemplateId": "lt-0ed9d82c955628e13",
+      "LaunchTemplateName": "compie-dev-20261025134752440500000005",
+      "Version": "1"
+    },
+    "desired": 1,
+    "min": 1,
+    "instances": {
+      "InstanceId": "i-03754e3b267dd4806",
+      "HealthStatus": "Healthy",
+      "LifecycleState": "InService"
+    },
+    "subnets": "subnet-0a44121f31d62e783,subnet-0e909b27a3ba1fd43",
+    "name": "compie-dev-asg",
+    "health_check_type": "ELB",
+    "grace_period_seconds": 300
+  },
+  "instances": [
+    {
+      "Id": "i-03754e3b267dd4806",
+      "State": "running",
+      "SubnetId": "subnet-0a44121f31d62e783",
+      "PrivateIp": "10.42.11.22",
+      "PublicIp": null,
+      "SecurityGroups": [
+        "sg-0807fc74245455956"
+      ],
+      "MetadataTokens": "required"
+    }
+  ],
+  "alb": {
+    "security_groups": [
+      "sg-0a04650cf0f8091c1"
+    ],
+    "vpc_id": "vpc-060c887f56b60ed3b",
+    "name": "compie-dev-alb",
+    "state": "active",
+    "scheme": "internet-facing",
+    "type": "application",
+    "subnets": [
+      "subnet-00d0df995478418c0",
+      "subnet-05800b5995e1c8ea8"
+    ]
+  },
+  "target_groups": [
+    {
+      "Arn": "arn:aws:elasticloadbalancing:il-central-1:108782097005:targetgroup/compie-dev-app/8162e614afd8d4b4",
+      "Port": 8080,
+      "Protocol": "HTTP",
+      "TargetType": "instance",
+      "HealthCheckPath": "/health",
+      "HealthCheckIntervalSeconds": 15,
+      "HealthCheckTimeoutSeconds": 10,
+      "HealthyThresholdCount": 2,
+      "UnhealthyThresholdCount": 3,
+      "Matcher": {
+        "HttpCode": "200"
+      }
+    }
+  ],
+  "targets": [
+    {
+      "Id": "i-03754e3b267dd4806",
+      "Port": 8080,
+      "State": "healthy"
+    }
+  ],
+  "subnets": [
+    {
+      "SubnetId": "subnet-0a44121f31d62e783",
+      "AvailabilityZone": "il-central-1b",
+      "CidrBlock": "10.42.11.0/24",
+      "MapPublicIpOnLaunch": false,
+      "Tags": [
+        {
+          "Key": "ManagedBy",
+          "Value": "Terraform"
+        },
+        {
+          "Key": "Environment",
+          "Value": "dev"
+        },
+        {
+          "Key": "Project",
+          "Value": "compie"
+        },
+        {
+          "Key": "Name",
+          "Value": "compie-dev-private-2"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-00d0df995478418c0",
+      "AvailabilityZone": "il-central-1a",
+      "CidrBlock": "10.42.0.0/24",
+      "MapPublicIpOnLaunch": false,
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "compie-dev-public-1"
+        },
+        {
+          "Key": "ManagedBy",
+          "Value": "Terraform"
+        },
+        {
+          "Key": "Environment",
+          "Value": "dev"
+        },
+        {
+          "Key": "Project",
+          "Value": "compie"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-05800b5995e1c8ea8",
+      "AvailabilityZone": "il-central-1b",
+      "CidrBlock": "10.42.1.0/24",
+      "MapPublicIpOnLaunch": false,
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "compie-dev-public-2"
+        },
+        {
+          "Key": "ManagedBy",
+          "Value": "Terraform"
+        },
+        {
+          "Key": "Project",
+          "Value": "compie"
+        },
+        {
+          "Key": "Environment",
+          "Value": "dev"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-0e909b27a3ba1fd43",
+      "AvailabilityZone": "il-central-1a",
+      "CidrBlock": "10.42.10.0/24",
+      "MapPublicIpOnLaunch": false,
+      "Tags": [
+        {
+          "Key": "Environment",
+          "Value": "dev"
+        },
+        {
+          "Key": "Name",
+          "Value": "compie-dev-private-1"
+        },
+        {
+          "Key": "ManagedBy",
+          "Value": "Terraform"
+        },
+        {
+          "Key": "Project",
+          "Value": "compie"
+        }
+      ]
+    }
+  ],
+  "route_tables": [
+    {
+      "RouteTableId": "rtb-00660264c7b48984f",
+      "Associations": [
+        {
+          "Main": false,
+          "RouteTableAssociationId": "rtbassoc-09d8b58115159f9e9",
+          "RouteTableId": "rtb-00660264c7b48984f",
+          "SubnetId": "subnet-0e909b27a3ba1fd43",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "10.42.0.0/16",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        },
+        {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "NatGatewayId": "nat-05bb720f8fbf50a38",
+          "Origin": "CreateRoute",
+          "State": "active"
+        },
+        {
+          "DestinationPrefixListId": "pl-6ea74207",
+          "GatewayId": "vpce-09e35ac7b0781a639",
+          "Origin": "CreateRoute",
+          "State": "active"
+        }
+      ]
+    },
+    {
+      "RouteTableId": "rtb-0478543ffa0e16f6b",
+      "Associations": [
+        {
+          "Main": false,
+          "RouteTableAssociationId": "rtbassoc-05d2b342159488785",
+          "RouteTableId": "rtb-0478543ffa0e16f6b",
+          "SubnetId": "subnet-00d0df995478418c0",
+          "AssociationState": {
+            "State": "associated"
+          }
+        },
+        {
+          "Main": false,
+          "RouteTableAssociationId": "rtbassoc-0af0d26c1c0c5ad1a",
+          "RouteTableId": "rtb-0478543ffa0e16f6b",
+          "SubnetId": "subnet-05800b5995e1c8ea8",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "10.42.0.0/16",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        },
+        {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": "igw-00a08c0f434c2bf8b",
+          "Origin": "CreateRoute",
+          "State": "active"
+        }
+      ]
+    },
+    {
+      "RouteTableId": "rtb-078a96e56e5d59b62",
+      "Associations": [
+        {
+          "Main": true,
+          "RouteTableAssociationId": "rtbassoc-06d095ac6a7102d06",
+          "RouteTableId": "rtb-078a96e56e5d59b62",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "10.42.0.0/16",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        }
+      ]
+    },
+    {
+      "RouteTableId": "rtb-0695ed0a1b8cb0476",
+      "Associations": [
+        {
+          "Main": false,
+          "RouteTableAssociationId": "rtbassoc-0adefd3db6ae94151",
+          "RouteTableId": "rtb-0695ed0a1b8cb0476",
+          "SubnetId": "subnet-0a44121f31d62e783",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "10.42.0.0/16",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        },
+        {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "NatGatewayId": "nat-05bb720f8fbf50a38",
+          "Origin": "CreateRoute",
+          "State": "active"
+        },
+        {
+          "DestinationPrefixListId": "pl-6ea74207",
+          "GatewayId": "vpce-09e35ac7b0781a639",
+          "Origin": "CreateRoute",
+          "State": "active"
+        }
+      ]
+    }
+  ],
+  "security_groups": [
+    {
+      "GroupId": "sg-0a04650cf0f8091c1",
+      "GroupName": "compie-dev-alb",
+      "IpPermissions": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 80,
+          "ToPort": 80,
+          "UserIdGroupPairs": [],
+          "IpRanges": [
+            {
+              "CidrIp": "0.0.0.0/0"
+            }
+          ],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ],
+      "IpPermissionsEgress": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 8080,
+          "ToPort": 8080,
+          "UserIdGroupPairs": [
+            {
+              "UserId": "108782097005",
+              "GroupId": "sg-0807fc74245455956"
+            }
+          ],
+          "IpRanges": [],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ]
+    },
+    {
+      "GroupId": "sg-0807fc74245455956",
+      "GroupName": "compie-dev-app",
+      "IpPermissions": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 8080,
+          "ToPort": 8080,
+          "UserIdGroupPairs": [
+            {
+              "UserId": "108782097005",
+              "GroupId": "sg-0a04650cf0f8091c1"
+            }
+          ],
+          "IpRanges": [],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ],
+      "IpPermissionsEgress": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 443,
+          "ToPort": 443,
+          "UserIdGroupPairs": [],
+          "IpRanges": [
+            {
+              "CidrIp": "0.0.0.0/0"
+            }
+          ],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ]
+    }
+  ],
+  "routing_and_ingress_check": "PASS: public via IGW; private via NAT; application ingress only TCP 8080 from ALB security group; instances have no public IP."
+}

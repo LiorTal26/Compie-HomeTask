@@ -13,6 +13,7 @@ Deployed commit: `31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1`.
 | Application delivery | [Run 40201715332](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40201715332) succeeded from manual dispatch on `main`. Build, behavior checks, real DynamoDB Local CRUD, OIDC, ECR push, refresh, and public verification all passed. |
 | Instance replacement | ASG activity records successful launch of `i-03754e3b267dd4806` followed by termination of `i-02b32f36f989113b7`, both caused by Instance Refresh. Desired capacity returned to one. |
 | Private compute | The running instance has private address `10.42.11.22` and no public IP. |
+| Networking and ASG | [Live checks](network-compute-checks.json) record public/private subnet routes, security-group rules, an internet-facing ALB, ASG capacity `1/1/2`, launch-template reference, and a healthy `/health` target. |
 | CI separation | IAM simulation returned `explicitDeny` for `secretsmanager:GetSecretValue` for both CI roles. |
 | Encryption | DynamoDB reports enabled KMS encryption. The configuration key is AWS-managed and enabled; the secret uses the default `aws/secretsmanager` key because Terraform omits `kms_key_id`. |
 | Logs | Saved CloudWatch request records and cloud-init/package installation output. |

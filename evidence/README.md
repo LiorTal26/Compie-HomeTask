@@ -12,6 +12,7 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 | [Dev apply](terraform%20apply%20output%20proof.png) | Local Terraform apply completed with 40 resources added. |
 | [Bootstrap plan](terraform-bootstrap-plan.txt), [dev plan](terraform-dev-plan.txt) | Final plans both exited zero and reported no changes. These are text results, not state or binary plan files. |
 | [Security checks](security-checks.json) | No instance public IP, enabled DynamoDB KMS encryption, an enabled AWS-managed configuration key, and simulated CI secret-access denial. |
+| [Networking and compute checks](network-compute-checks.json) | Live VPC/subnet routing, security groups, private EC2, public ALB, launch-template reference, ASG capacity, and healthy target. |
 | [Application logs](app-logs.txt) | CloudWatch request records with status, request ID, and release version. |
 | [Instance logs](instance-logs.txt) | CloudWatch-collected cloud-init and package installation output. |
 | [Alarm notification](alert-alarm.json), [recovery notification](alert-recovery.json) | CloudWatch state changes received through SNS/SQS. |

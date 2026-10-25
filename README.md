@@ -170,9 +170,23 @@ terraform -chdir=infra/dev output
 
 The EC2 startup shell template installs Docker/CloudWatch and starts the container. It is part of the launch template, rather than a separate operator-helper framework.
 
+## Networking, compute, and capacity
+
+Terraform creates one VPC with two public and two private subnets across two Availability Zones. Public subnet default routes use the Internet Gateway; private subnet default routes use one NAT gateway. The internet-facing ALB occupies the public subnets and forwards HTTP requests to the ASG's instance target group on port `8080`.
+
+The ASG uses a Terraform launch template to run the Docker container on Amazon Linux 2023 `t3.micro` instances in the private subnets. Public IP assignment is disabled in both the subnets and launch template. Docker and systemd manage the container on EC2.
+
+Capacity is **min 1 / desired 1 / max 2**. The ASG maintains the desired capacity and uses ELB health checks to replace unhealthy instances. The target group checks `/health` every 15 seconds, expects HTTP `200`, and the ASG allows 300 seconds for startup. During releases, Instance Refresh starts the replacement before terminating the previous instance.
+
+Capacity currently stays at one instance; no load-based scaling policy is configured. To increase capacity, change the ASG values in Terraform, for example to **2 / 2 / 4**, then plan and apply. For automatic scaling, add a CPU target-tracking policy after measuring the workload and allow that policy to manage desired capacity.
+
+One steady instance and one NAT gateway keep the exercise small but allow instance or AZ failures to interrupt service. Higher availability would use at least two steady instances across the AZs and a NAT gateway per AZ.
+
+Live configuration evidence: [networking and compute checks](evidence/network-compute-checks.json).
+
 ## Security and operations
 
-Instances have no public IP, require IMDSv2, and accept `8080` only from the ALB security group. Use SSM for administration. One NAT gateway provides outbound AWS-service access.
+Instances have no public IP and require IMDSv2. The ALB security group accepts public TCP `80` and can send TCP `8080` only to the application security group. The application security group accepts TCP `8080` only from the ALB security group and permits outbound TCP `443` for service access. No SSH ingress is configured; use SSM for administration. One NAT gateway provides outbound AWS-service access.
 
 DynamoDB is outside the VPC. The gateway endpoint and table policy restrict data access to the application role through that endpoint. Terraform control-plane operations remain available.
 
@@ -217,8 +231,6 @@ Compress-Archive -LiteralPath output/git-history.bundle -DestinationPath output/
 The ZIP contains the committed source, evidence, and `git-history.bundle`. After extracting, reviewers can restore the repository with `git clone -b main ./git-history.bundle review-copy`. The bundle preserves commit history without copying this machine's Git configuration.
 
 Credentials, Terraform state and binary plans, tools, local configuration, and the assignment PDF are excluded. The evidence includes text output from Terraform plans, which contains no state file or secret value. Inspect the ZIP before submission.
-
-ASG min/desired/max is **1/1/2**. It repairs failures; CPU-based scaling is deferred. One steady instance and one NAT gateway reduce cost but expose the environment to instance/AZ failures. More steady instances and per-AZ NAT improve availability.
 
 ALB, NAT, IPv4, EC2/EBS, requests, logs, and Secrets Manager can incur charges. US$15 is a short-lived planning target, not a hard cap. Check regional pricing and destroy promptly after saving evidence.
 
