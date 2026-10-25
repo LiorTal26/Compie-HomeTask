@@ -163,3 +163,6 @@ jobs:
           if [ "$DEPLOY_MODE" != rollback ]; then
             jq -e --arg version "$GITHUB_SHA" '.version == $version' /tmp/health.json
           fi
+          version=$(jq -r '.version' /tmp/health.json)
+          printf '### Verified application\n\n[Open the application](%s)\n\nRelease commit: `%s`\n\nImage: `%s`\n\nDatabase health: **ok**\n' \
+            "$APPLICATION_URL" "$version" "$IMAGE_URI" >> "$GITHUB_STEP_SUMMARY"

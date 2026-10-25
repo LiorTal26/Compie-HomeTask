@@ -182,7 +182,7 @@ resource "aws_iam_role_policy" "infrastructure_ci" {
       { Sid = "StateLock", Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.state.arn}/dev/terraform.tfstate.tflock" },
       { Sid = "InstanceProfile", Effect = "Allow", Action = ["iam:PassRole"], Resource = aws_iam_role.instance.arn, Condition = { StringEquals = { "iam:PassedToService" = "ec2.amazonaws.com" } } },
       { Sid = "ServiceLinkedRoles", Effect = "Allow", Action = ["iam:CreateServiceLinkedRole"], Resource = "arn:aws:iam::${local.account}:role/aws-service-role/*", Condition = { StringEquals = { "iam:AWSServiceName" = ["autoscaling.amazonaws.com", "elasticloadbalancing.amazonaws.com"] } } },
-      { Sid = "ConfigMetadata", Effect = "Allow", Action = ["secretsmanager:DescribeSecret"], Resource = aws_secretsmanager_secret.app.arn },
+      { Sid = "ConfigMetadata", Effect = "Allow", Action = ["secretsmanager:DescribeSecret", "secretsmanager:GetResourcePolicy"], Resource = aws_secretsmanager_secret.app.arn },
       { Sid = "PublicAMI", Effect = "Allow", Action = ["ssm:GetParameter"], Resource = "arn:aws:ssm:${var.aws_region}::parameter/aws/service/ami-amazon-linux-latest/*" },
       { Sid = "DescribeCompute", Effect = "Allow", Action = ["ec2:Describe*", "elasticloadbalancing:Describe*", "autoscaling:Describe*"], Resource = "*", Condition = { StringEquals = { "aws:RequestedRegion" = var.aws_region } } },
       { Sid = "VPCAndLaunchTemplate", Effect = "Allow", Action = [
