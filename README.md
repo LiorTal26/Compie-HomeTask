@@ -2,7 +2,7 @@
 
 One Flask application serves HTML/CSS, handles add/delete forms, and accesses DynamoDB. No browser JavaScript, Node.js, npm, Docker Compose, or standalone scripts directory is needed.
 
-**Current validation:** the app has been built and tested locally against DynamoDB Local. Terraform and workflow definitions pass local validation. AWS provisioning and GitHub publishing are deferred; this repository does not claim a live AWS deployment. See `evidence/local-validation.md`.
+**Current validation:** the app has been built and tested locally against DynamoDB Local. The AWS bootstrap foundation has been applied and checked for drift; both CI roles are explicitly denied secret-value access. EC2/ALB deployment and GitHub Actions execution are the next stages. See `evidence/local-validation.md` and `evidence/aws-bootstrap.md`.
 
 ## Project
 
@@ -55,17 +55,11 @@ The optional CA is used only during dependency installation. It is not copied in
 
 ## Bootstrap AWS and GitHub
 
-Prerequisites: AWS CLI v2, Terraform **1.13.5**, Docker, Git, a private GitHub repository, and GitHub CLI for repository settings. Check `aws sts get-caller-identity` before provisioning.
+Prerequisites: AWS CLI v2, Terraform **1.13.5**, Docker, Git, and permission to configure the GitHub repository's Actions variables. Repository visibility is your choice; the assignment specifies a ZIP submission. Check `aws sts get-caller-identity` before provisioning.
 
-1. Create a private repository and push the source to `main`. The original assignment PDF is ignored.
-2. Get the repository ID and configure an exact, stable OIDC subject:
-
-   ```powershell
-   gh api repos/YOUR_USER/YOUR_REPO --jq .id
-   '{"use_default":false,"include_claim_keys":["repository_id","ref"]}' | gh api --method PUT repos/YOUR_USER/YOUR_REPO/actions/oidc/customization/sub --input -
-   ```
-
-3. Copy `infra/bootstrap/terraform.tfvars.example` to the ignored `terraform.tfvars` and fill in the repository ID. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider; it will be reused and preserved.
+1. Use your GitHub repository and its `main` branch. This project targets `LiorTal26/Compie-HomeTask`. The original assignment PDF is ignored.
+2. Match the repository's default OIDC subject. New repositories use `repo:OWNER@OWNER_ID/REPO@REPOSITORY_ID:ref:refs/heads/main`; this repository's IDs are owner `91834069` and repository `1433129391`. These identifiers are available in [GitHub repository metadata](https://api.github.com/repos/LiorTal26/Compie-HomeTask). No custom token settings are required. See [GitHub's OIDC reference](https://docs.github.com/en/actions/reference/security/oidc).
+3. Copy `infra/bootstrap/terraform.tfvars.example` to the ignored `terraform.tfvars` and fill in the exact subject. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider; it will be reused and preserved.
 4. Review and apply bootstrap locally:
 
    ```powershell
@@ -183,4 +177,4 @@ terraform -chdir=infra/bootstrap plan -destroy -out=destroy.tfplan
 terraform -chdir=infra/bootstrap apply destroy.tfplan
 ```
 
-Destroy dev before bootstrap. The dedicated state bucket/ECR permit deleting project objects/images; the disposable config secret has no recovery window. A reused OIDC provider is preserved. Confirm project resources are gone before discarding bootstrap state. Keep the private source repository.
+Destroy dev before bootstrap. The dedicated state bucket/ECR permit deleting project objects/images; the disposable config secret has no recovery window. A reused OIDC provider is preserved. Confirm project resources are gone before discarding bootstrap state. Keep the source repository for review.

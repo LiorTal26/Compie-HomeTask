@@ -1,6 +1,6 @@
 # Local validation — October 25, 2026
 
-These results apply to the local Docker environment. No AWS infrastructure was provisioned, and no GitHub Actions run was performed.
+These results apply to the local Docker environment. At the time of these checks, no AWS infrastructure had been provisioned and no GitHub Actions run had been performed. Subsequent bootstrap results are recorded in `aws-bootstrap.md`.
 
 | Check | Result |
 |---|---|

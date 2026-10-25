@@ -1,4 +1,4 @@
 aws_region     = "il-central-1"
 project        = "compie"
-github_subject = "repository_id:REPLACE_WITH_REPOSITORY_ID:ref:refs/heads/main"
+github_subject = "repo:YOUR_USER@OWNER_ID/YOUR_REPO@REPOSITORY_ID:ref:refs/heads/main"
 # existing_oidc_provider_arn = "arn:aws:iam::ACCOUNT:oidc-provider/token.actions.githubusercontent.com"

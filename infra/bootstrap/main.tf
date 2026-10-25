@@ -20,7 +20,7 @@ variable "project" {
 }
 variable "github_subject" {
   type        = string
-  description = "Exact OIDC sub. Recommended: repository_id:ID:ref:refs/heads/main, with the repository subject template configured accordingly."
+  description = "Exact GitHub OIDC sub for the repository and main branch. Match the repository's actual subject format."
   validation {
     condition     = endswith(var.github_subject, ":ref:refs/heads/main") && !strcontains(var.github_subject, "*")
     error_message = "Trust must be restricted to the main branch with no wildcard."
