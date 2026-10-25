@@ -190,11 +190,14 @@ aws logs tail /compie/dev/instance --since 15m --region il-central-1
 | Private networking, IAM, KMS | [Network checks](evidence/network-compute-checks.json), [security checks](evidence/security-checks.json), [database denial test](evidence/database-operator-probe.json) |
 | Usable app / instance logs | [App records](evidence/app-logs.txt), [startup records](evidence/instance-logs.txt) |
 | Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json); initial provisioning transitions, not an injected outage |
+| Live HTTPS & DynamoDB Persistence | [Live items board screenshot](evidence/live-app-dynamodb-proof.png), [DynamoDB live table scan proof](evidence/dynamodb-live-proof.json); verified writes from HTTPS UI persisted to `compie-dev-items` table |
 
 <details>
 <summary>Application and deployment screenshots</summary>
 
 Public snapshots captured during the assignment; the ZIP contains the latest application, health, dashboard, and apply screenshots.
+
+![Live HTTPS app on custom domain with items verified in DynamoDB](evidence/live-app-dynamodb-proof.png)
 
 ![Application served through the public ALB](evidence/live%20app%20running%20from%20ec2%20proof.png)
 

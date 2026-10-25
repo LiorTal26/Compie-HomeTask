@@ -1,0 +1,91 @@
+﻿{
+    "Items": [
+        {
+            "createdAt": {
+                "S": "2026-10-25T14:30:37.685195+00:00"
+            },
+            "text": {
+                "S": "TEST123"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792938637685-d80bf7bc-5f62-4390-9fa6-84f24521d8d2"
+            }
+        },
+        {
+            "createdAt": {
+                "S": "2026-10-25T15:18:50.156524+00:00"
+            },
+            "text": {
+                "S": "DEVOPS 101"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792941530156-fd8b20b9-560e-4cb6-8b48-03f99f304c2a"
+            }
+        },
+        {
+            "createdAt": {
+                "S": "2026-10-25T17:32:42.108156+00:00"
+            },
+            "text": {
+                "S": "Bonus verification - 2026-10-25"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792949562108-6acd5dea-18aa-4dab-9e62-12a22e4a9f28"
+            }
+        },
+        {
+            "createdAt": {
+                "S": "2026-10-25T20:16:21.800572+00:00"
+            },
+            "text": {
+                "S": "DevOps Verification: DynamoDB Live Write via HTTPS"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792959381800-818d9073-0d03-41fb-946c-0d03ba971c8e"
+            }
+        },
+        {
+            "createdAt": {
+                "S": "2026-10-25T20:16:32.987373+00:00"
+            },
+            "text": {
+                "S": "Hello"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792959392987-7a8fa6fd-9561-4fbc-ae40-cbbf6814f153"
+            }
+        },
+        {
+            "createdAt": {
+                "S": "2026-10-25T20:16:39.042155+00:00"
+            },
+            "text": {
+                "S": "DevOps Verification Item - Written from HTTPS to DynamoDB"
+            },
+            "pk": {
+                "S": "ITEMS"
+            },
+            "sk": {
+                "S": "1792959399042-27aefc69-f56c-4039-962b-6ed558122399"
+            }
+        }
+    ],
+    "Count": 6,
+    "ScannedCount": 6,
+    "ConsumedCapacity": null
+}
