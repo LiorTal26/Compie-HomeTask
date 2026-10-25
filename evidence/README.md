@@ -4,6 +4,7 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 
 | Evidence | What it shows |
 |---|---|
+| [Architecture PNG](../docs/architecture.png), [editable SVG](../docs/architecture.svg) | Generated and visually reviewed network/delivery diagram at the start of the README. |
 | [Live application](live%20app%20running%20from%20ec2%20proof.png) | Public ALB URL, rendered interface, and a stored demo item. |
 | [Health screenshot](health-check-proof.png), [fresh health response](live-health.json) | The deployed app successfully queries DynamoDB and reports its release commit. |
 | [Application workflow screenshot](CI-CD-PROOF.png), [workflow metadata](workflow-run.json) | Successful manually dispatched build, checks, ECR push, ASG refresh, and public verification. |
@@ -28,6 +29,6 @@ The alarm JSON files were decoded from the SQS message bodies supplied by the op
 
 Screenshots and command output retain resource names, account IDs, and ARNs for traceability. They contain no application configuration values, AWS credentials, GitHub tokens, Terraform state, or assignment PDF.
 
-The public files retain earlier snapshots. Latest public CI results: [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) and [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491), both successful from a push of `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
+The public files retain earlier snapshots. Public CI verification: [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) at `8d4597b`, plus the [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960) at `f535ec4`; all passed.
 
 New detailed AWS snapshots, logs, and item-ID comparisons are supplied only in the local submission ZIP. Its evidence directory overlays these public snapshots.

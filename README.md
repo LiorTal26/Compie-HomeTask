@@ -17,8 +17,13 @@ Use PowerShell 7 from the repository root, with Docker Desktop running Linux con
 ```powershell
 docker build -t compie-items:local .
 docker network create compie-local
-docker run -d --name compie-db --network compie-local amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb
-docker run -d --name compie-app --network compie-local -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 compie-items:local
+docker run -d --name compie-db --network compie-local `
+  amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb
+docker run -d --name compie-app --network compie-local `
+  -p 127.0.0.1:8080:8080 --read-only --tmpfs /tmp `
+  --cap-drop ALL --security-opt no-new-privileges `
+  -e CONFIG_SOURCE=local -e DYNAMODB_ENDPOINT=http://compie-db:8000 `
+  compie-items:local
 docker exec compie-app flask --app app:create_app init-local-db
 (Invoke-WebRequest http://127.0.0.1:8080/).StatusCode
 Invoke-RestMethod http://127.0.0.1:8080/health
@@ -91,7 +96,12 @@ Initialize the dev backend and apply the environment:
 
 ```powershell
 $bucket = terraform -chdir=infra/bootstrap output -raw state_bucket
-terraform -chdir=infra/dev init "-backend-config=bucket=$bucket" "-backend-config=key=dev/terraform.tfstate" "-backend-config=region=il-central-1" "-backend-config=encrypt=true" "-backend-config=use_lockfile=true"
+terraform -chdir=infra/dev init `
+  "-backend-config=bucket=$bucket" `
+  "-backend-config=key=dev/terraform.tfstate" `
+  "-backend-config=region=il-central-1" `
+  "-backend-config=encrypt=true" `
+  "-backend-config=use_lockfile=true"
 terraform -chdir=infra/dev plan "-out=dev.tfplan"
 terraform -chdir=infra/dev apply dev.tfplan
 $url = terraform -chdir=infra/dev output -raw application_url
