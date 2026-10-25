@@ -1,0 +1,198 @@
+{
+  "account": "108782097005",
+  "region": "il-central-1",
+  "default_identity": "arn:aws:sts::108782097005:assumed-role/compie-operator/local-operator",
+  "operator_role_arn": "arn:aws:iam::108782097005:role/compie-operator",
+  "source_user_arn": "arn:aws:iam::108782097005:user/compie-operator-source",
+  "role_permissions": "Read-only regional infrastructure metadata and project evidence; no provisioning, deletion, database item access, or secret-value retrieval",
+  "source_user_permissions": "Only sts:AssumeRole on compie-operator",
+  "source_credential_type": "IAM user access key stored in local AWS credentials; operator role sessions are temporary",
+  "credential_storage": "C:\\Users\\liorta\\.aws\\credentials",
+  "root_profile": "compie-root-bootstrap (existing credentials retained; default is non-root)",
+  "cli_profiles": [
+    "default",
+    "compie-operator",
+    "compie-operator-source",
+    "compie-root-bootstrap"
+  ],
+  "console_login_created": false,
+  "administrator_access_attached": false,
+  "credentials_saved_in_repository": false,
+  "database_metadata_read": "passed",
+  "operator_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "DenySecretValues",
+        "Effect": "Deny",
+        "Action": [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:BatchGetSecretValue"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "RegionalMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "ec2:Describe*",
+          "autoscaling:Describe*",
+          "elasticloadbalancing:Describe*",
+          "ssm:DescribeInstanceInformation",
+          "logs:DescribeLogGroups",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "StringEquals": {
+            "aws:RequestedRegion": "il-central-1"
+          }
+        }
+      },
+      {
+        "Sid": "ProjectRoleMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "iam:GetRole",
+          "iam:ListRolePolicies",
+          "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies"
+        ],
+        "Resource": [
+          "arn:aws:iam::108782097005:role/compie-dev-instance",
+          "arn:aws:iam::108782097005:role/compie-dev-application-ci",
+          "arn:aws:iam::108782097005:role/compie-dev-infrastructure-ci",
+          "arn:aws:iam::108782097005:role/compie-operator"
+        ]
+      },
+      {
+        "Sid": "ProjectInstanceProfile",
+        "Effect": "Allow",
+        "Action": [
+          "iam:GetInstanceProfile"
+        ],
+        "Resource": "arn:aws:iam::108782097005:instance-profile/compie-dev-instance"
+      },
+      {
+        "Sid": "ImageMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
+          "ecr:ListImages",
+          "ecr:ListTagsForResource"
+        ],
+        "Resource": "arn:aws:ecr:il-central-1:108782097005:repository/compie-dev"
+      },
+      {
+        "Sid": "DatabaseMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:DescribeTable",
+          "dynamodb:GetResourcePolicy"
+        ],
+        "Resource": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items"
+      },
+      {
+        "Sid": "ConfigurationMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "secretsmanager:DescribeSecret"
+        ],
+        "Resource": "arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-*"
+      },
+      {
+        "Sid": "ReleaseMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:GetParameter"
+        ],
+        "Resource": "arn:aws:ssm:il-central-1:108782097005:parameter/compie/dev/release-image"
+      },
+      {
+        "Sid": "ProjectLogReads",
+        "Effect": "Allow",
+        "Action": [
+          "logs:GetLogEvents",
+          "logs:FilterLogEvents",
+          "logs:DescribeLogStreams"
+        ],
+        "Resource": [
+          "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/*",
+          "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/*:*"
+        ]
+      },
+      {
+        "Sid": "ProjectAlarmReads",
+        "Effect": "Allow",
+        "Action": [
+          "cloudwatch:DescribeAlarms",
+          "cloudwatch:DescribeAlarmHistory"
+        ],
+        "Resource": "arn:aws:cloudwatch:il-central-1:108782097005:alarm:compie-dev-*"
+      },
+      {
+        "Sid": "QueueMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ],
+        "Resource": "arn:aws:sqs:il-central-1:108782097005:compie-dev-alerts"
+      },
+      {
+        "Sid": "TopicMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "sns:GetTopicAttributes",
+          "sns:ListSubscriptionsByTopic"
+        ],
+        "Resource": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+      },
+      {
+        "Sid": "KeyMetadata",
+        "Effect": "Allow",
+        "Action": [
+          "kms:DescribeKey"
+        ],
+        "Resource": "arn:aws:kms:il-central-1:108782097005:key/*"
+      }
+    ]
+  },
+  "operator_trust": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::108782097005:root"
+        },
+        "Action": "sts:AssumeRole",
+        "Condition": {
+          "ArnEquals": {
+            "aws:PrincipalArn": "arn:aws:iam::108782097005:user/compie-operator-source"
+          }
+        }
+      }
+    ]
+  },
+  "account_identity_managed_outside_assignment_terraform": true,
+  "verified_at_utc": "2026-10-25T16:09:56.974625+00:00",
+  "remaining_inline_policies": [
+    "CompieReadOnlyVerification"
+  ],
+  "attached_managed_policies": [],
+  "temporary_database_permission_removed": true,
+  "secret_api_simulation": [
+    {
+      "action": "secretsmanager:GetSecretValue",
+      "decision": "explicitDeny"
+    },
+    {
+      "action": "secretsmanager:BatchGetSecretValue",
+      "decision": "explicitDeny"
+    }
+  ]
+}

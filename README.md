@@ -158,6 +158,8 @@ Recorded local proof: [HTTP checks](evidence/docker-local-http.json), [runtime i
 
 Prerequisites: AWS CLI v2, Terraform **1.13.5**, Docker, Git, and permission to configure the GitHub repository's Actions variables. Repository visibility is your choice; the assignment specifies a ZIP submission. Check `aws sts get-caller-identity` before provisioning.
 
+On this workstation, the default AWS profile now assumes the read-only `compie-operator` role for inspections. Provisioning and local Terraform commands below require a separately authorized provisioning identity; the read-only profile cannot apply or destroy infrastructure or access Terraform state. The existing Infrastructure workflow uses its own CI role for dev plans/applies.
+
 1. Use your GitHub repository and its `main` branch. This project targets `LiorTal26/Compie-HomeTask`. The original assignment PDF is ignored.
 2. Match the repository's default OIDC subject. New repositories use `repo:OWNER@OWNER_ID/REPO@REPOSITORY_ID:ref:refs/heads/main`; this repository's IDs are owner `91834069` and repository `1433129391`. These identifiers are available in [GitHub repository metadata](https://api.github.com/repos/LiorTal26/Compie-HomeTask). No custom token settings are required. See [GitHub's OIDC reference](https://docs.github.com/en/actions/reference/security/oidc).
 3. Copy `infra/bootstrap/terraform.tfvars.example` to the ignored `terraform.tfvars` and fill in the exact subject. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider; it will be reused and preserved.
@@ -240,7 +242,23 @@ Live configuration evidence: [networking and compute checks](evidence/network-co
 
 Instances have no public IP and require IMDSv2. The ALB security group accepts public TCP `80` and can send TCP `8080` only to the application security group. The application security group accepts TCP `8080` only from the ALB security group and permits outbound TCP `443` for service access. No SSH ingress is configured; use SSM for administration. One NAT gateway provides outbound AWS-service access.
 
-DynamoDB is outside the VPC. The gateway endpoint and table policy restrict data access to the application role through that endpoint. Terraform control-plane operations remain available.
+### Data store
+
+Terraform provisions the managed DynamoDB table `compie-dev-items`. DynamoDB is an AWS regional service outside the VPC. The application reaches it through a gateway endpoint attached to both private route tables; database traffic follows that endpoint route rather than the NAT gateway. See [AWS's DynamoDB endpoint documentation](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-ddb.html).
+
+The endpoint policy allows only the application role's `Query`, `PutItem`, and `DeleteItem` operations on this table. The table resource policy is configured to deny data operations outside the specified endpoint and to principals other than the application role. These restrictions apply to table data; authorized Terraform control-plane operations remain available.
+
+AWS database authentication uses temporary credentials from the EC2 instance profile. The table name comes from Secrets Manager and the region comes from runtime configuration. There is no database password or hardcoded AWS connection string. The dummy credentials and localhost endpoint in the source are limited to DynamoDB Local mode.
+
+`/health` executes a real DynamoDB `Query` with a limit of one and returns `200` when it succeeds, or `503` when it fails. The application's forms also add, list, and delete table records.
+
+The table uses `PAY_PER_REQUEST` for this short, low-traffic demo, with no provisioned read/write capacity to manage. Request and storage charges can apply; this is not a guarantee of free-tier usage. AWS's read/write free-tier capacity allowance uses provisioned mode; see [DynamoDB pricing](https://aws.amazon.com/dynamodb/pricing/). Destroying `infra/dev` removes the table. Keep the environment only while collecting and reviewing evidence, then follow the teardown commands below.
+
+**Privacy check:** the application queries the table successfully. A non-root operator query through the explicit public DynamoDB endpoint returned `AccessDeniedException` with an explicit deny in the table's resource policy. The same denial occurred while a temporary identity policy allowed only `COUNT` queries on this table; the temporary policy was removed afterward. No item values were returned by that test.
+
+An earlier comparison query using root credentials succeeded outside the VPC. That result is retained in the evidence; the demonstrated resource-policy denial is for the non-root operator. Root credentials are no longer the default CLI identity. An initial temporary-role probe could not obtain a session and was cleaned up.
+
+Evidence: [table, endpoint, and live health](evidence/database-checks.json), [non-root denial test](evidence/database-operator-probe.json), [root comparison](evidence/database-outside-endpoint.json), and [initial temporary-role cleanup](evidence/database-nonroot-probe.json). No database records were changed and no secret values were retrieved.
 
 ### Image, configuration, and IAM
 
@@ -253,12 +271,22 @@ AWS runtime configuration is JSON in Secrets Manager at `/compie/dev/app-config`
 | `compie-dev-instance` instance profile | Pull the project ECR image, read the app configuration, access the items table, read the release parameter, and write project logs. `AmazonSSMManagedInstanceCore` supports SSM management. |
 | `compie-dev-application-ci` | Push to the project ECR repository, update the release parameter, and trigger/observe the project ASG refresh. Explicitly denies both `GetSecretValue` and `BatchGetSecretValue`. |
 | `compie-dev-infrastructure-ci` | Manage the dev Terraform state and selected infrastructure operations. Can pass only the existing instance role to EC2; can inspect app-secret metadata but explicitly denies secret-value retrieval. |
+| `compie-operator` | Read-only local metadata/evidence checks, with explicit denial of secret values. No provisioning, deletion, or permanent database-data permissions. |
 
-Both CI roles use GitHub OIDC temporary credentials. Their trust policies match this repository's exact subject on `main` and audience `sts.amazonaws.com`. The workflows use their respective role ARNs. None of these three roles has `AdministratorAccess` attached. ECR authorization uses `Resource: "*"` following [AWS's ECR policy example](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html); repository push/pull operations are scoped to the project repository.
+Both CI roles use GitHub OIDC temporary credentials. Their trust policies match this repository's exact subject on `main` and audience `sts.amazonaws.com`. The workflows use their respective role ARNs. None of these roles has `AdministratorAccess` attached. ECR authorization uses `Resource: "*"` following [AWS's ECR policy example](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html); repository push/pull operations are scoped to the project repository.
 
 Repository write access remains security-sensitive because deployed code executes with the instance identity. Denying secret-read APIs to CI protects direct API access; a trusted deployment can still run application code with runtime permissions.
 
-**Operator follow-up:** the local CLI used for provisioning and this audit authenticates as the account root user. Runtime and CI use the dedicated roles above. Move routine local operations to a non-root operator identity using temporary credentials, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). This account-access cleanup has not been performed.
+**Local operator access:** the default CLI profile and named profile `compie-operator` now assume a scoped read-only role with one-hour sessions. A source IAM user, `compie-operator-source`, can only assume that role. Its access key is stored in the local AWS credentials file outside this repository; no console login was created. This account-access identity is separate from the assignment's Terraform-managed runtime and CI roles.
+
+The original root credentials remain in the explicitly named `compie-root-bootstrap` profile and have not been retired. Routine inspections now use the non-root role, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). Broader local write/delete permissions were rejected by automatic approval review; use the existing Infrastructure workflow for dev changes.
+
+```powershell
+aws sts get-caller-identity
+aws sts get-caller-identity --profile compie-operator
+```
+
+Both commands should report an ARN starting with `arn:aws:sts::108782097005:assumed-role/compie-operator/`. See [operator setup evidence](evidence/operator-setup.json). The profile credentials and AWS CLI credential cache are excluded from submission.
 
 Verification: [image, configuration, and IAM evidence](evidence/image-config-iam-checks.json), plus [recent application log delivery](evidence/app-runtime-log-proof.json). Secret metadata and permission simulations are recorded without secret values.
 
@@ -304,7 +332,7 @@ Credentials, Terraform state and binary plans, tools, local configuration, and t
 
 ALB, NAT, IPv4, EC2/EBS, requests, logs, and Secrets Manager can incur charges. US$15 is a short-lived planning target, not a hard cap. Check regional pricing and destroy promptly after saving evidence.
 
-Stop new deployments. Using the local operator identity and initialized backend:
+Stop new deployments. These commands require a separately authorized provisioning identity and the initialized backend; the read-only inspection profile cannot run teardown:
 
 ```powershell
 terraform -chdir=infra/dev plan -destroy "-out=destroy.tfplan"

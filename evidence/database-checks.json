@@ -1,0 +1,132 @@
+{
+  "account": "108782097005",
+  "region": "il-central-1",
+  "checked_at_utc": "2026-10-25T15:35:03.4913154Z",
+  "table": {
+    "Name": "compie-dev-items",
+    "Arn": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+    "Status": "ACTIVE",
+    "Billing": "PAY_PER_REQUEST",
+    "KeySchema": [
+      {
+        "AttributeName": "pk",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "sk",
+        "KeyType": "RANGE"
+      }
+    ],
+    "Encryption": {
+      "Status": "ENABLED",
+      "SSEType": "KMS",
+      "KMSMasterKeyArn": "arn:aws:kms:il-central-1:108782097005:key/b64bd3b3-18d3-4cca-b452-c1f838fdcd83"
+    }
+  },
+  "table_resource_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "DataOnlyThroughPrivateEndpoint",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:ConditionCheckItem",
+          "dynamodb:PartiQLSelect",
+          "dynamodb:PartiQLInsert",
+          "dynamodb:PartiQLUpdate",
+          "dynamodb:PartiQLDelete"
+        ],
+        "Resource": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+        "Condition": {
+          "StringNotEquals": {
+            "aws:SourceVpce": "vpce-09e35ac7b0781a639"
+          }
+        }
+      },
+      {
+        "Sid": "DataOnlyForApplicationRole",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:ConditionCheckItem",
+          "dynamodb:PartiQLSelect",
+          "dynamodb:PartiQLInsert",
+          "dynamodb:PartiQLUpdate",
+          "dynamodb:PartiQLDelete"
+        ],
+        "Resource": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+        "Condition": {
+          "ArnNotEquals": {
+            "aws:PrincipalArn": "arn:aws:iam::108782097005:role/compie-dev-instance"
+          }
+        }
+      }
+    ]
+  },
+  "endpoints": [
+    {
+      "Id": "vpce-09e35ac7b0781a639",
+      "Type": "Gateway",
+      "State": "available",
+      "Service": "com.amazonaws.il-central-1.dynamodb",
+      "VpcId": "vpc-060c887f56b60ed3b",
+      "RouteTableIds": [
+        "rtb-00660264c7b48984f",
+        "rtb-0695ed0a1b8cb0476"
+      ],
+      "Policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+              "dynamodb:Query",
+              "dynamodb:PutItem",
+              "dynamodb:DeleteItem"
+            ],
+            "Resource": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+            "Condition": {
+              "ArnEquals": {
+                "aws:PrincipalArn": "arn:aws:iam::108782097005:role/compie-dev-instance"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "health": {
+    "status_code": 200,
+    "body": {
+      "database": "ok",
+      "status": "ok",
+      "version": "31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1"
+    }
+  },
+  "health_after_operator_setup": {
+    "status_code": 200,
+    "body": {
+      "database": "ok",
+      "status": "ok",
+      "version": "31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1"
+    }
+  }
+}

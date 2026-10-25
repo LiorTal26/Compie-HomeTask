@@ -14,6 +14,10 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 | [Security checks](security-checks.json) | No instance public IP, enabled DynamoDB KMS encryption, an enabled AWS-managed configuration key, and simulated CI secret-access denial. |
 | [Networking and compute checks](network-compute-checks.json) | Live VPC/subnet routing, security groups, private EC2, public ALB, launch-template reference, ASG capacity, and healthy target. |
 | [Image, config, and IAM checks](image-config-iam-checks.json) | ECR release digest, secret metadata, instance profile, OIDC trust, attached policies, permission simulations, and the root operator follow-up. No secret values are included. |
+| [Database configuration](database-checks.json) | Active on-demand DynamoDB table, deployed resource/endpoint policies, encryption, and successful live database health. |
+| [Non-root database denial](database-operator-probe.json) | Explicit table resource-policy denial from outside the VPC, including with temporarily allowed COUNT permission; temporary permission removed. |
+| [Root comparison](database-outside-endpoint.json), [initial temporary-role audit](database-nonroot-probe.json) | Earlier root queries succeeded outside the VPC. An initial role session could not be obtained; the temporary role was deleted. These results are retained separately from the successful non-root denial test. |
+| [Operator setup](operator-setup.json) | Default CLI switched to a scoped read-only assumed role. Source user can only assume that role; credential values are not included. |
 | [Application logs](app-logs.txt), [recent delivery check](app-runtime-log-proof.json) | CloudWatch request records with status, request ID, and release version, including a fresh runtime logging check. |
 | [Instance logs](instance-logs.txt) | CloudWatch-collected cloud-init and package installation output. |
 | [Alarm notification](alert-alarm.json), [recovery notification](alert-recovery.json) | CloudWatch state changes received through SNS/SQS. |

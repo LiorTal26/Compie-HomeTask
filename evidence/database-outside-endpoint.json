@@ -1,0 +1,31 @@
+{
+  "checked_at_utc": "2026-10-25T15:39:18.479995+00:00",
+  "operator_arn": "arn:aws:iam::108782097005:root",
+  "account": "108782097005",
+  "cli_path": "C:\\Program Files\\Amazon\\AWSCLIV2\\aws.exe",
+  "python_resolved_aws": "C:\\Program Files\\Amazon\\AWSCLIV2\\aws.EXE",
+  "endpoint_url": "https://dynamodb.il-central-1.amazonaws.com",
+  "table_arn": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+  "source": "Local Windows CLI outside the application VPC",
+  "probes": [
+    {
+      "select": "COUNT",
+      "exit_code": 0,
+      "access_denied": false,
+      "data_values_saved": false,
+      "result": "UNEXPECTED_SUCCESS",
+      "returned_count": 1
+    },
+    {
+      "select": "SPECIFIC_ATTRIBUTES",
+      "exit_code": 0,
+      "access_denied": false,
+      "data_values_saved": false,
+      "result": "UNEXPECTED_SUCCESS",
+      "returned_count": 1
+    }
+  ],
+  "records_changed": false,
+  "secret_values_retrieved": false,
+  "all_probes_denied": false
+}

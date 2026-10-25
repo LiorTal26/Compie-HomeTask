@@ -1,0 +1,13 @@
+{
+  "checked_at_utc": "2026-10-25T15:42:12.697801+00:00",
+  "temporary_role_arn": "arn:aws:iam::108782097005:role/compie-dev-db-audit-c02180fc",
+  "table_arn": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+  "trust": "Current account root principal only",
+  "permission": "dynamodb:Query on the assignment table only",
+  "source": "Local Windows CLI through the explicit public DynamoDB endpoint",
+  "records_changed": false,
+  "data_values_saved": false,
+  "temporary_role_deleted": true,
+  "identity_policy_decision": "allowed",
+  "audit_error": "Temporary role could not be assumed; no credentials were saved"
+}

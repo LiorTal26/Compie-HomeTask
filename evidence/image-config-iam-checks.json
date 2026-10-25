@@ -197,5 +197,5 @@
   ],
   "simulation_scope": "Normalized results collected during this audit. Simulations evaluate permissions without executing the listed operations or retrieving secret values.",
   "runtime_logging_evidence": "app-runtime-log-proof.json contains recent requests delivered to CloudWatch. Simulation using the log-group ARN allowed writes. A separate simulation using a concrete log-stream ARN returned implicitDeny despite observed runtime delivery; that result was not treated as proof of a runtime outage, and no IAM policy change was made.",
-  "operator_follow_up": "The local CLI uses the AWS account root user. Move routine operator work to a non-root identity with temporary credentials. Runtime and both CI workflows use their dedicated roles."
+  "operator_follow_up": "Routine inspections now use the read-only compie-operator assumed role by default. Root credentials remain only in the named compie-root-bootstrap profile and are not retired. Local provisioning/deletion permissions were not granted. See operator-setup.json."
 }

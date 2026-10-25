@@ -1,0 +1,41 @@
+{
+  "checked_at_utc": "2026-10-25T16:03:54.412596+00:00",
+  "operator_arn": "arn:aws:sts::108782097005:assumed-role/compie-operator/local-operator",
+  "table_arn": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+  "endpoint_url": "https://dynamodb.il-central-1.amazonaws.com",
+  "source": "Local Windows CLI outside the application VPC endpoint",
+  "select": "COUNT",
+  "records_changed": false,
+  "data_values_saved": false,
+  "temporary_policy_removed": true,
+  "baseline": {
+    "exit_code": 254,
+    "access_denied": true,
+    "error": "An error occurred (AccessDeniedException) when calling the Query operation: User: arn:aws:sts::108782097005:assumed-role/compie-operator/local-operator is not authorized to perform: dynamodb:Query on resource: arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items with an explicit deny in a resource-based policy",
+    "result": "DENIED",
+    "data_values_saved": false
+  },
+  "temporary_identity_policy_decision": "allowed",
+  "temporary_identity_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "dynamodb:Query",
+        "Resource": "arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items",
+        "Condition": {
+          "StringEquals": {
+            "dynamodb:Select": "COUNT"
+          }
+        }
+      }
+    ]
+  },
+  "with_temporary_count_permission": {
+    "exit_code": 254,
+    "access_denied": true,
+    "error": "An error occurred (AccessDeniedException) when calling the Query operation: User: arn:aws:sts::108782097005:assumed-role/compie-operator/local-operator is not authorized to perform: dynamodb:Query on resource: arn:aws:dynamodb:il-central-1:108782097005:table/compie-dev-items with an explicit deny in a resource-based policy",
+    "result": "DENIED",
+    "data_values_saved": false
+  }
+}
