@@ -62,3 +62,82 @@ resource "aws_cloudwatch_metric_alarm" "no_healthy_targets" {
   ok_actions    = [aws_sns_topic.alerts.arn]
   depends_on    = [aws_sns_topic_policy.alerts, aws_sns_topic_subscription.alerts]
 }
+
+resource "aws_cloudwatch_dashboard" "app" {
+  dashboard_name = "${local.prefix}-dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title = "ALB Target Health & Request Count"
+          metrics = [
+            ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", aws_lb_target_group.app.arn_suffix, "LoadBalancer", aws_lb.app.arn_suffix, { color = "#2ca02c" }],
+            [".", "UnHealthyHostCount", ".", ".", ".", ".", { color = "#d62728" }],
+            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.app.arn_suffix, { stat = "Sum", yAxis = "right", color = "#1f77b4" }]
+          ]
+          period = 60
+          region = var.aws_region
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title = "ASG CPU Utilization"
+          metrics = [
+            ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", aws_autoscaling_group.app.name, { stat = "Average", color = "#ff7f0e" }]
+          ]
+          # EC2 basic monitoring publishes CPU metrics every five minutes.
+          period = 300
+          region = var.aws_region
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title = "DynamoDB Consumed Capacity & Latency"
+          metrics = [
+            ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", aws_dynamodb_table.items.name, { stat = "Sum" }],
+            [".", "ConsumedWriteCapacityUnits", ".", ".", { stat = "Sum" }],
+            [".", "SuccessfulRequestLatency", ".", ".", "Operation", "Query", { stat = "Average", yAxis = "right" }]
+          ]
+          period = 60
+          region = var.aws_region
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title = "Alarm Metric & Threshold"
+          metrics = [
+            ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", aws_lb_target_group.app.arn_suffix, "LoadBalancer", aws_lb.app.arn_suffix, { stat = "Minimum" }]
+          ]
+          annotations = {
+            horizontal = [
+              { value = 1, label = "Alarm Threshold (< 1)", color = "#d62728" }
+            ]
+          }
+          period = 60
+          region = var.aws_region
+        }
+      }
+    ]
+  })
+}

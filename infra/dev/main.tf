@@ -48,3 +48,4 @@ output "alarm_name" { value = aws_cloudwatch_metric_alarm.no_healthy_targets.ala
 output "alert_queue_url" { value = aws_sqs_queue.alerts.url }
 output "application_log_group" { value = aws_cloudwatch_log_group.app.name }
 output "instance_log_group" { value = aws_cloudwatch_log_group.instance.name }
+output "dashboard_name" { value = aws_cloudwatch_dashboard.app.dashboard_name }

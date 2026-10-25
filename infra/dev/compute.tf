@@ -107,9 +107,27 @@ resource "aws_autoscaling_group" "app" {
     value               = "dev"
     propagate_at_launch = true
   }
+  lifecycle {
+    # The target tracking policy owns capacity after the initial single instance.
+    ignore_changes = [desired_capacity]
+  }
   depends_on = [
     aws_lb_listener.http, aws_route.nat, aws_route_table_association.private,
     aws_dynamodb_resource_policy.items, aws_vpc_security_group_egress_rule.https,
     aws_vpc_security_group_ingress_rule.app, aws_vpc_security_group_egress_rule.alb_to_app
   ]
+}
+
+resource "aws_autoscaling_policy" "cpu" {
+  name                      = "${local.prefix}-cpu-target-tracking"
+  autoscaling_group_name    = aws_autoscaling_group.app.name
+  policy_type               = "TargetTrackingScaling"
+  estimated_instance_warmup = 60
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 70.0
+  }
 }

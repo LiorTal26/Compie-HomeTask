@@ -204,7 +204,8 @@ resource "aws_iam_role_policy" "infrastructure_ci" {
       ], Resource = "*", Condition = { StringEquals = { "aws:RequestedRegion" = var.aws_region } } },
       { Sid = "AutoScaling", Effect = "Allow", Action = [
         "autoscaling:CreateAutoScalingGroup", "autoscaling:UpdateAutoScalingGroup", "autoscaling:DeleteAutoScalingGroup", "autoscaling:CreateOrUpdateTags", "autoscaling:DeleteTags",
-        "autoscaling:AttachLoadBalancerTargetGroups", "autoscaling:DetachLoadBalancerTargetGroups", "autoscaling:StartInstanceRefresh", "autoscaling:CancelInstanceRefresh"
+        "autoscaling:AttachLoadBalancerTargetGroups", "autoscaling:DetachLoadBalancerTargetGroups", "autoscaling:StartInstanceRefresh", "autoscaling:CancelInstanceRefresh",
+        "autoscaling:PutScalingPolicy", "autoscaling:DeletePolicy"
       ], Resource = local.asg_arn },
       { Sid = "TableManagement", Effect = "Allow", Action = [
         "dynamodb:CreateTable", "dynamodb:DeleteTable", "dynamodb:UpdateTable", "dynamodb:DescribeTable", "dynamodb:DescribeContinuousBackups", "dynamodb:DescribeTimeToLive",
@@ -213,6 +214,7 @@ resource "aws_iam_role_policy" "infrastructure_ci" {
       { Sid = "Logs", Effect = "Allow", Action = ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:PutRetentionPolicy", "logs:DeleteRetentionPolicy", "logs:ListTagsForResource", "logs:TagResource", "logs:UntagResource"], Resource = [local.log_arn, "${local.log_arn}:*"] },
       { Sid = "DescribeLogs", Effect = "Allow", Action = ["logs:DescribeLogGroups"], Resource = "*" },
       { Sid = "Alarms", Effect = "Allow", Action = ["cloudwatch:PutMetricAlarm", "cloudwatch:DeleteAlarms", "cloudwatch:DescribeAlarms", "cloudwatch:ListTagsForResource", "cloudwatch:TagResource", "cloudwatch:UntagResource"], Resource = "arn:aws:cloudwatch:${var.aws_region}:${local.account}:alarm:${local.prefix}-*" },
+      { Sid = "Dashboard", Effect = "Allow", Action = ["cloudwatch:GetDashboard", "cloudwatch:PutDashboard", "cloudwatch:DeleteDashboards"], Resource = "arn:aws:cloudwatch::${local.account}:dashboard/${local.prefix}-dashboard" },
       { Sid = "Topic", Effect = "Allow", Action = ["sns:CreateTopic", "sns:DeleteTopic", "sns:GetTopicAttributes", "sns:SetTopicAttributes", "sns:ListTagsForResource", "sns:TagResource", "sns:UntagResource", "sns:Subscribe", "sns:Unsubscribe", "sns:GetSubscriptionAttributes", "sns:SetSubscriptionAttributes"], Resource = "arn:aws:sns:${var.aws_region}:${local.account}:${local.prefix}-alerts*" },
       { Sid = "AlertQueue", Effect = "Allow", Action = ["sqs:CreateQueue", "sqs:DeleteQueue", "sqs:GetQueueAttributes", "sqs:GetQueueUrl", "sqs:SetQueueAttributes", "sqs:ListQueueTags", "sqs:TagQueue", "sqs:UntagQueue"], Resource = "arn:aws:sqs:${var.aws_region}:${local.account}:${local.prefix}-alerts" }
     ]

@@ -239,9 +239,9 @@ Terraform creates one VPC with two public and two private subnets across two Ava
 
 The ASG uses a Terraform launch template to run the Docker container on Amazon Linux 2023 `t3.micro` instances in the private subnets. Public IP assignment is disabled in both the subnets and launch template. Docker and systemd manage the container on EC2.
 
-Capacity is **min 1 / desired 1 / max 2**. The ASG maintains the desired capacity and uses ELB health checks to replace unhealthy instances. The target group checks `/health` every 15 seconds, expects HTTP `200`, and the ASG allows 300 seconds for startup. During releases, Instance Refresh starts the replacement before terminating the previous instance.
+Initial capacity is **min 1 / desired 1 / max 2**. The ASG maintains the desired capacity and uses ELB health checks to replace unhealthy instances. The target group checks `/health` every 15 seconds, expects HTTP `200`, and the ASG allows 300 seconds for startup. During releases, Instance Refresh starts the replacement before terminating the previous instance.
 
-Capacity currently stays at one instance; no load-based scaling policy is configured. To increase capacity, change the ASG values in Terraform, for example to **2 / 2 / 4**, then plan and apply. For automatic scaling, add a CPU target-tracking policy after measuring the workload and allow that policy to manage desired capacity.
+The CPU target-tracking policy targets **70% average CPU**, with a **60-second instance warmup**, within the **1–2 instance** bounds. Terraform sets the initial desired capacity to one and ignores later changes to `desired_capacity`, allowing the policy to manage it. EC2 basic monitoring publishes CPU every five minutes, so scaling is not immediate. To support more load, increase the Terraform min/max bounds after measuring the workload. For steady multi-AZ capacity, raise the minimum to two and choose a larger maximum.
 
 One steady instance and one NAT gateway keep the exercise small but allow instance or AZ failures to interrupt service. Higher availability would use at least two steady instances across the AZs and a NAT gateway per AZ.
 
@@ -317,7 +317,26 @@ aws cloudwatch set-alarm-state --alarm-name compie-dev-no-healthy-targets --stat
 aws sqs receive-message --queue-url $queue --wait-time-seconds 10 --max-number-of-messages 10 --region il-central-1
 ```
 
-If already ALARM, wait for healthy metrics to restore OK before testing that transition. A forced state tests notification wiring, not a genuine outage. Real metrics restore the state. A real receiver would be an operations email or incident-management integration. The dashboard is a deferred bonus.
+If already ALARM, wait for healthy metrics to restore OK before testing that transition. A forced state tests notification wiring, not a genuine outage. Real metrics restore the state. A real receiver would be an operations email or incident-management integration.
+
+## Bonus Deliverables
+
+- **Dynamic ASG scaling:** [compute.tf](infra/dev/compute.tf) defines `aws_autoscaling_policy.cpu` for `compie-dev-asg`, using `ASGAverageCPUUtilization`, a 70% target, and 60-second warmup. The deployed policy and its AWS-managed high/low alarms were verified. A CPU stress test and an actual load-triggered capacity change have not been demonstrated.
+- **CloudWatch dashboard:** [observability.tf](infra/dev/observability.tf) defines `compie-dev-dashboard`, with four widgets covering ALB target health/traffic, ASG CPU, DynamoDB consumed capacity/query latency, and the healthy-target alarm threshold. Terraform exposes `dashboard_name = "compie-dev-dashboard"`. The dashboard was checked against live AWS metrics.
+- **Architecture diagram:** The submission ZIP includes standalone HTML diagrams at `architecture.html` and `evidence/architecture.html`. They show the VPC, subnet tiers, ALB, private compute, database endpoint, KMS-backed stores, CI/CD, and alert path. The diagram has no external asset dependencies. It is supplied locally with the new evidence.
+
+The ZIP includes `evidence/cloudwatch-dashboard.png`, `evidence/live-app-ui.png`, `evidence/live-health-check.png`, and detailed bonus verification. The architecture screenshot remains incomplete because the browser blocks local `file://` navigation; the HTML itself is included.
+
+KMS encryption for DynamoDB and Secrets Manager is a core assignment requirement and is documented above. Both use enabled AWS-managed keys; it is not counted as an additional bonus.
+
+Read-only verification commands:
+
+```powershell
+aws autoscaling describe-policies --auto-scaling-group-name compie-dev-asg --region il-central-1 --query "ScalingPolicies[].{Name:PolicyName,Type:PolicyType,Target:TargetTrackingConfiguration.TargetValue,Warmup:EstimatedInstanceWarmup}"
+terraform -chdir=infra/dev output -raw dashboard_name
+```
+
+The dashboard's [AWS console view](https://il-central-1.console.aws.amazon.com/cloudwatch/home?region=il-central-1#dashboards/dashboard/compie-dev-dashboard) is in `il-central-1`.
 
 ## Submission and teardown
 
@@ -326,7 +345,7 @@ The saved evidence covers the live page and database health, a push-triggered re
 Commit source and sanitized evidence, then package tracked files with a portable copy of Git history:
 
 ```powershell
-git add .
+git add -- README.md infra .github evidence/validation-summary.md
 git commit -m "Document verified AWS release and submission evidence"
 New-Item -ItemType Directory -Path output -Force
 git archive --format=zip --output=output/compie-devops-submission.zip HEAD

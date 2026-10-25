@@ -12,6 +12,10 @@ Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
 | IAM repair | Added only `secretsmanager:GetResourcePolicy` on the app configuration secret. Secret-value API denial remains unchanged. |
 | Logs and drift | New-version request logs were present in CloudWatch. Post-repair bootstrap and dev plans reported no changes. |
 | Credentials | Source and evidence were scanned for credential patterns. Credential files, state, binary plans, local config, and the assignment PDF are excluded from the submission package. |
+| Dynamic ASG scaling (CPU 70%) | Verified deployed target-tracking configuration, 60-second warmup, and AWS-managed high/low alarms for `compie-dev-asg`. No CPU stress test or actual load-based capacity change was exercised. |
+| CloudWatch dashboard | Verified `compie-dev-dashboard` and its four widgets against live AWS metrics. Terraform output: `dashboard_name = "compie-dev-dashboard"`. Screenshot is in the local submission ZIP only. |
+| Architecture visual diagram | Generated standalone HTML diagrams, supplied in the ZIP. Browser capture of the local file was blocked, so no architecture screenshot is claimed. |
+| Bonus apply | Reviewed saved Terraform plan applied: 2 additions, 0 changes, 0 destroys. The running instance remained healthy and was not replaced. |
 
 ## Evidence scope
 
