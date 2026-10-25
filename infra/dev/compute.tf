@@ -26,9 +26,22 @@ resource "aws_lb_listener" "http" {
   port              = 80
   protocol          = "HTTP"
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app.arn
+    type             = local.https_enabled ? "redirect" : "forward"
+    target_group_arn = local.https_enabled ? null : aws_lb_target_group.app.arn
+    dynamic "redirect" {
+      for_each = local.https_enabled ? [1] : []
+      content {
+        host        = var.domain_name
+        port        = "443"
+        protocol    = "HTTPS"
+        path        = "/#{path}"
+        query       = "#{query}"
+        status_code = "HTTP_301"
+      }
+    }
   }
+  # Keep the existing HTTP service available until TLS and DNS are ready.
+  depends_on = [aws_lb_listener.https, aws_route53_record.app]
 }
 resource "aws_launch_template" "app" {
   name_prefix            = "${local.prefix}-"
@@ -49,6 +62,7 @@ resource "aws_launch_template" "app" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
+      encrypted             = true
       volume_size           = 12
       volume_type           = "gp3"
       delete_on_termination = true

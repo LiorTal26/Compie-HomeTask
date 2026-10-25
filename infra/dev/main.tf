@@ -14,6 +14,18 @@ provider "aws" {
 variable "aws_region" { default = "il-central-1" }
 variable "project" { default = "compie" }
 variable "instance_type" { default = "t3.micro" }
+variable "domain_name" {
+  type    = string
+  default = ""
+  validation {
+    condition     = (var.domain_name == "") == (var.hosted_zone_id == "")
+    error_message = "Set both domain_name and hosted_zone_id to enable HTTPS, or leave both empty for HTTP."
+  }
+}
+variable "hosted_zone_id" {
+  type    = string
+  default = ""
+}
 
 data "aws_caller_identity" "current" {}
 data "aws_availability_zones" "available" { state = "available" }
@@ -23,14 +35,15 @@ data "aws_ssm_parameter" "ami" {
 data "aws_secretsmanager_secret" "app" { name = "/${var.project}/dev/app-config" }
 
 locals {
-  prefix       = "${var.project}-dev"
-  account      = data.aws_caller_identity.current.account_id
-  zones        = slice(data.aws_availability_zones.available.names, 0, 2)
-  app_role_arn = "arn:aws:iam::${local.account}:role/${local.prefix}-instance"
-  table_name   = "${local.prefix}-items"
-  release_name = "/${var.project}/dev/release-image"
-  ecr_registry = "${local.account}.dkr.ecr.${var.aws_region}.amazonaws.com"
-  ecr_repo     = "${local.ecr_registry}/${local.prefix}"
+  https_enabled = var.domain_name != ""
+  prefix        = "${var.project}-dev"
+  account       = data.aws_caller_identity.current.account_id
+  zones         = slice(data.aws_availability_zones.available.names, 0, 2)
+  app_role_arn  = "arn:aws:iam::${local.account}:role/${local.prefix}-instance"
+  table_name    = "${local.prefix}-items"
+  release_name  = "/${var.project}/dev/release-image"
+  ecr_registry  = "${local.account}.dkr.ecr.${var.aws_region}.amazonaws.com"
+  ecr_repo      = "${local.ecr_registry}/${local.prefix}"
   # Restrict data operations, including alternate read/write APIs, while retaining Terraform's control-plane access.
   data_actions = [
     "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:Scan",
@@ -39,7 +52,7 @@ locals {
   ]
 }
 
-output "application_url" { value = "http://${aws_lb.app.dns_name}" }
+output "application_url" { value = local.https_enabled ? "https://${var.domain_name}" : "http://${aws_lb.app.dns_name}" }
 output "asg_name" { value = aws_autoscaling_group.app.name }
 output "target_group_arn" { value = aws_lb_target_group.app.arn }
 output "database_table" { value = aws_dynamodb_table.items.name }

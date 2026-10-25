@@ -25,6 +25,8 @@ env:
   AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'il-central-1' }}
   TF_IN_AUTOMATION: 'true'
   TF_INPUT: 'false'
+  TF_VAR_domain_name: ${{ vars.APPLICATION_DOMAIN || '' }}
+  TF_VAR_hosted_zone_id: ${{ vars.ROUTE53_ZONE_ID || '' }}
 
 jobs:
   terraform:
