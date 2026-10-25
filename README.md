@@ -20,19 +20,71 @@ The successful [Application run](https://github.com/LiorTal26/Compie-HomeTask/ac
 Request path: **browser → public ALB → private EC2/ASG → DynamoDB gateway endpoint**. Region: `il-central-1`.
 
 ```mermaid
-flowchart LR
-    Browser --> ALB["Public ALB"]
-    ALB --> EC2["Private EC2 / ASG: 1 / 1 / 2"]
-    EC2 --> Endpoint["DynamoDB gateway endpoint"]
-    Endpoint --> Database["DynamoDB"]
-    Actions["GitHub Actions / OIDC"] --> ECR
-    Actions --> Release["SSM release parameter / ASG refresh"]
-    Release --> EC2
-    ECR --> EC2
-    Config["Secrets Manager"] --> EC2
-    EC2 --> Logs["CloudWatch Logs"]
-    ALB --> Alarm["CloudWatch alarm"]
-    Alarm --> SNS --> SQS
+graph TB
+    subgraph Internet ["Public Internet"]
+        User(["User / Web Browser"])
+        GHActions["GitHub Actions (CI/CD Pipeline)"]
+    end
+
+    subgraph AWS ["AWS Cloud (Region: il-central-1)"]
+        subgraph VPC ["VPC: 10.42.0.0/16"]
+            IGW["Internet Gateway (IGW)"]
+
+            subgraph PublicSubnets ["Public Subnets (il-central-1a / il-central-1b)"]
+                ALB["Application Load Balancer (ALB)<br/>Security Group: Inbound TCP 80"]
+                NAT["NAT Gateway (Public Subnet 1)"]
+            end
+
+            subgraph PrivateSubnets ["Private Subnets (il-central-1a / il-central-1b) - No Public IPs"]
+                ASG["Auto Scaling Group (Min: 1, Desired: 1, Max: 2)"]
+                EC2["EC2 Instance (t3.micro, AL2023)<br/>Container: Flask + Gunicorn (:8080)<br/>SG: Inbound 8080 from ALB SG only"]
+            end
+
+            VPCE["DynamoDB Gateway VPC Endpoint"]
+        end
+
+        subgraph Storage_Security ["Data, Configuration & IAM"]
+            DDB[("Amazon DynamoDB<br/>Table: compie-dev-items<br/>(KMS: aws/dynamodb)")]
+            SM["AWS Secrets Manager<br/>/compie/dev/app-config<br/>(KMS: aws/secretsmanager)"]
+            SSM["AWS SSM Parameter Store<br/>/compie/dev/release-image"]
+            ECR["Amazon ECR Repository<br/>compie-dev"]
+            IAM["IAM Roles & GitHub OIDC Trust<br/>(Least-Privilege Scoping)"]
+        end
+
+        subgraph Monitoring ["Observability & Alerting"]
+            CWL["CloudWatch Logs<br/>/compie/dev/app & /instance"]
+            CWA["CloudWatch Metric Alarm<br/>No Healthy Targets (< 1 for 2m)"]
+            SNS["Amazon SNS Topic<br/>compie-dev-alerts"]
+            SQS["Amazon SQS Queue<br/>compie-dev-alerts"]
+        end
+    end
+
+    %% Traffic Flow
+    User -->|HTTP :80| IGW
+    IGW --> ALB
+    ALB -->|Forward :8080| EC2
+
+    %% Private Compute Interactions
+    ASG -->|Maintains capacity| EC2
+    EC2 -->|Gateway Route| VPCE
+    VPCE --> DDB
+    EC2 -.->|Outbound Egress| NAT
+    NAT --> IGW
+    EC2 -->|Fetch Config| SM
+    EC2 -->|Read Image Digest| SSM
+    EC2 -->|Pull Container Image| ECR
+    EC2 -->|Forward stdout/stderr| CWL
+
+    %% CI/CD Flow
+    GHActions -->|1. AssumeRoleWithWebIdentity| IAM
+    GHActions -->|2. Docker Push| ECR
+    GHActions -->|3. Update Release Digest| SSM
+    GHActions -->|4. Trigger Instance Refresh| ASG
+
+    %% Alerting Flow
+    ALB -.->|HealthyHostCount Metric| CWA
+    CWA -->|Trigger Alarm| SNS
+    SNS -->|Fanout Message| SQS
 ```
 
 ## Run locally
@@ -190,7 +242,25 @@ Instances have no public IP and require IMDSv2. The ALB security group accepts p
 
 DynamoDB is outside the VPC. The gateway endpoint and table policy restrict data access to the application role through that endpoint. Terraform control-plane operations remain available.
 
-EC2, application CI, and infrastructure CI use separate roles. Both CI roles explicitly deny secret-value retrieval and lack database data permissions. Infrastructure CI has selected regional provisioning actions and can pass only the existing instance role. Repository write access remains security-sensitive because deployments execute with the instance identity.
+### Image, configuration, and IAM
+
+The private ECR repository is `108782097005.dkr.ecr.il-central-1.amazonaws.com/compie-dev`. Tags are immutable, scanning is enabled on push, and releases select an image by digest through the non-secret SSM parameter `/compie/dev/release-image`.
+
+AWS runtime configuration is JSON in Secrets Manager at `/compie/dev/app-config`, containing `welcomeMessage` and `tableName`. Terraform creates only the secret metadata; its value is populated separately. EC2 supplies the secret ARN and `CONFIG_SOURCE=aws` to the container. Flask calls Secrets Manager through boto3 at startup using the EC2 instance role, then uses the configured table for DynamoDB requests. Configuration updates take effect after restarting the application or refreshing its instances. Local demo defaults apply only when `CONFIG_SOURCE=local`.
+
+| Identity | Responsibility and limits |
+|---|---|
+| `compie-dev-instance` instance profile | Pull the project ECR image, read the app configuration, access the items table, read the release parameter, and write project logs. `AmazonSSMManagedInstanceCore` supports SSM management. |
+| `compie-dev-application-ci` | Push to the project ECR repository, update the release parameter, and trigger/observe the project ASG refresh. Explicitly denies both `GetSecretValue` and `BatchGetSecretValue`. |
+| `compie-dev-infrastructure-ci` | Manage the dev Terraform state and selected infrastructure operations. Can pass only the existing instance role to EC2; can inspect app-secret metadata but explicitly denies secret-value retrieval. |
+
+Both CI roles use GitHub OIDC temporary credentials. Their trust policies match this repository's exact subject on `main` and audience `sts.amazonaws.com`. The workflows use their respective role ARNs. None of these three roles has `AdministratorAccess` attached. ECR authorization uses `Resource: "*"` following [AWS's ECR policy example](https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html); repository push/pull operations are scoped to the project repository.
+
+Repository write access remains security-sensitive because deployed code executes with the instance identity. Denying secret-read APIs to CI protects direct API access; a trusted deployment can still run application code with runtime permissions.
+
+**Operator follow-up:** the local CLI used for provisioning and this audit authenticates as the account root user. Runtime and CI use the dedicated roles above. Move routine local operations to a non-root operator identity using temporary credentials, consistent with [AWS root-user guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html). This account-access cleanup has not been performed.
+
+Verification: [image, configuration, and IAM evidence](evidence/image-config-iam-checks.json), plus [recent application log delivery](evidence/app-runtime-log-proof.json). Secret metadata and permission simulations are recorded without secret values.
 
 | Requirement | Implementation |
 |---|---|

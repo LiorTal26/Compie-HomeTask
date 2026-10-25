@@ -1,0 +1,27 @@
+[
+  {
+    "Timestamp": 1792941645732,
+    "Stream": "compie-app/474d40360d2b",
+    "Message": "[2026-10-25 15:20:45,732] INFO in app: {\"timestamp\": \"2026-10-25T15:20:45.732732+00:00\", \"event\": \"request\", \"requestId\": \"995167db-6e71-422e-af75-d109aee081c3\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 3, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}"
+  },
+  {
+    "Timestamp": 1792941646048,
+    "Stream": "compie-app/474d40360d2b",
+    "Message": "[2026-10-25 15:20:46,048] INFO in app: {\"timestamp\": \"2026-10-25T15:20:46.048596+00:00\", \"event\": \"request\", \"requestId\": \"bb1801b6-cf33-4584-a4d4-fe5299de687f\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 4, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}"
+  },
+  {
+    "Timestamp": 1792941660751,
+    "Stream": "compie-app/474d40360d2b",
+    "Message": "[2026-10-25 15:21:00,750] INFO in app: {\"timestamp\": \"2026-10-25T15:21:00.750565+00:00\", \"event\": \"request\", \"requestId\": \"652b2ded-a8b4-4135-9d34-d060645f7363\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 6, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}"
+  },
+  {
+    "Timestamp": 1792941661064,
+    "Stream": "compie-app/474d40360d2b",
+    "Message": "[2026-10-25 15:21:01,064] INFO in app: {\"timestamp\": \"2026-10-25T15:21:01.064285+00:00\", \"event\": \"request\", \"requestId\": \"52efbc24-b5ff-43ad-aecd-17fcf55337ba\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 4, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}"
+  },
+  {
+    "Timestamp": 1792941670864,
+    "Stream": "compie-app/474d40360d2b",
+    "Message": "[2026-10-25 15:21:10,864] INFO in app: {\"timestamp\": \"2026-10-25T15:21:10.864682+00:00\", \"event\": \"request\", \"requestId\": \"08b8c455-84a0-4bcb-8fdd-bd3ac070eadd\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 3, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}"
+  }
+]

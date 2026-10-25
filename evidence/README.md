@@ -13,7 +13,8 @@ Captured on October 25, 2026, for AWS account `108782097005` in `il-central-1`. 
 | [Bootstrap plan](terraform-bootstrap-plan.txt), [dev plan](terraform-dev-plan.txt) | Final plans both exited zero and reported no changes. These are text results, not state or binary plan files. |
 | [Security checks](security-checks.json) | No instance public IP, enabled DynamoDB KMS encryption, an enabled AWS-managed configuration key, and simulated CI secret-access denial. |
 | [Networking and compute checks](network-compute-checks.json) | Live VPC/subnet routing, security groups, private EC2, public ALB, launch-template reference, ASG capacity, and healthy target. |
-| [Application logs](app-logs.txt) | CloudWatch request records with status, request ID, and release version. |
+| [Image, config, and IAM checks](image-config-iam-checks.json) | ECR release digest, secret metadata, instance profile, OIDC trust, attached policies, permission simulations, and the root operator follow-up. No secret values are included. |
+| [Application logs](app-logs.txt), [recent delivery check](app-runtime-log-proof.json) | CloudWatch request records with status, request ID, and release version, including a fresh runtime logging check. |
 | [Instance logs](instance-logs.txt) | CloudWatch-collected cloud-init and package installation output. |
 | [Alarm notification](alert-alarm.json), [recovery notification](alert-recovery.json) | CloudWatch state changes received through SNS/SQS. |
 | [Bootstrap record](aws-bootstrap.md), [local checks](local-validation.md), [local screenshot](local-flask.jpg) | Earlier foundation and local application validation. |

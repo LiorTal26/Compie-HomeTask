@@ -15,6 +15,7 @@ Deployed commit: `31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1`.
 | Private compute | The running instance has private address `10.42.11.22` and no public IP. |
 | Networking and ASG | [Live checks](network-compute-checks.json) record public/private subnet routes, security-group rules, an internet-facing ALB, ASG capacity `1/1/2`, launch-template reference, and a healthy `/health` target. |
 | CI separation | IAM simulation returned `explicitDeny` for `secretsmanager:GetSecretValue` for both CI roles. |
+| Image and configuration | [Audit evidence](image-config-iam-checks.json) records the release image in ECR, an active secret version, role/profile configuration, and permission simulations. Source inspection confirms AWS-mode configuration is fetched from Secrets Manager at application startup. |
 | Encryption | DynamoDB reports enabled KMS encryption. The configuration key is AWS-managed and enabled; the secret uses the default `aws/secretsmanager` key because Terraform omits `kms_key_id`. |
 | Logs | Saved CloudWatch request records and cloud-init/package installation output. |
 | Notifications | Operator-supplied SQS bodies record the initial missing-metric ALARM and subsequent recovery to OK. |
@@ -29,5 +30,6 @@ Deployed commit: `31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1`.
 - The replacement evidence demonstrates a deployment refresh. It does not establish recovery from an injected instance failure or a measured zero-downtime guarantee.
 - The Infrastructure workflow definition was validated locally. The recorded dev apply ran through the local Terraform CLI.
 - The captured notifications do not contain the later forced-test reason. Their provenance is documented in the evidence index.
+- The local operator CLI still authenticates as the AWS account root user. Runtime and CI use separate roles; moving routine operator access to a non-root identity remains an account-security follow-up.
 
 The environment remains provisioned. This evidence pass performed no Terraform apply or destroy.

@@ -1,0 +1,201 @@
+{
+  "account": "108782097005",
+  "region": "il-central-1",
+  "checked_at_utc": "2026-10-25T15:18:35.3842700Z",
+  "operator_identity_arn": "arn:aws:iam::108782097005:root",
+  "repository": [
+    {
+      "Arn": "arn:aws:ecr:il-central-1:108782097005:repository/compie-dev",
+      "Uri": "108782097005.dkr.ecr.il-central-1.amazonaws.com/compie-dev",
+      "TagMutability": "IMMUTABLE",
+      "Scanning": {
+        "scanOnPush": true
+      }
+    }
+  ],
+  "release_image": "108782097005.dkr.ecr.il-central-1.amazonaws.com/compie-dev@sha256:38e6e4d746507d10bf9f92bc5dfcffb2170b40526abebbf95ef50a0b270b38a1",
+  "image": [
+    {
+      "Digest": "sha256:38e6e4d746507d10bf9f92bc5dfcffb2170b40526abebbf95ef50a0b270b38a1",
+      "Tags": [
+        "31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1-40201715332-1"
+      ],
+      "PushedAt": "2026-10-25T16:20:45.688+02:00",
+      "SizeBytes": 64964008
+    }
+  ],
+  "secret_metadata": {
+    "Arn": "arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-d6KRfp",
+    "Name": "/compie/dev/app-config",
+    "KmsKeyId": null,
+    "LastChangedDate": "2026-10-25T15:13:14.643+02:00",
+    "VersionIdsToStages": {
+      "34518057-832b-448b-a224-488d31ec6e13": [
+        "AWSCURRENT"
+      ]
+    }
+  },
+  "instance_profile": {
+    "Arn": "arn:aws:iam::108782097005:instance-profile/compie-dev-instance",
+    "Roles": [
+      "arn:aws:iam::108782097005:role/compie-dev-instance"
+    ]
+  },
+  "roles": [
+    {
+      "name": "compie-dev-instance",
+      "arn": "arn:aws:iam::108782097005:role/compie-dev-instance",
+      "trust": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "ec2.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      "attached_policies": [
+        {
+          "PolicyName": "AmazonSSMManagedInstanceCore",
+          "PolicyArn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        }
+      ],
+      "inline_policy_names": [
+        "terraform-20261025130223922900000002"
+      ]
+    },
+    {
+      "name": "compie-dev-application-ci",
+      "arn": "arn:aws:iam::108782097005:role/compie-dev-application-ci",
+      "trust": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": "arn:aws:iam::108782097005:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+              "StringEquals": {
+                "token.actions.githubusercontent.com:sub": "repo:LiorTal26@91834069/Compie-HomeTask@1433129391:ref:refs/heads/main",
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              }
+            }
+          }
+        ]
+      },
+      "attached_policies": [],
+      "inline_policy_names": [
+        "terraform-20261025130223934700000003"
+      ]
+    },
+    {
+      "name": "compie-dev-infrastructure-ci",
+      "arn": "arn:aws:iam::108782097005:role/compie-dev-infrastructure-ci",
+      "trust": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": "arn:aws:iam::108782097005:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+              "StringEquals": {
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                "token.actions.githubusercontent.com:sub": "repo:LiorTal26@91834069/Compie-HomeTask@1433129391:ref:refs/heads/main"
+              }
+            }
+          }
+        ]
+      },
+      "attached_policies": [],
+      "inline_policy_names": [
+        "terraform-20261025130224867900000004"
+      ]
+    }
+  ],
+  "secret_values_retrieved": false,
+  "iam_simulation": [
+    {
+      "role": "compie-dev-instance",
+      "action": "secretsmanager:GetSecretValue",
+      "resource_scope": "arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-d6KRfp",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-instance",
+      "action": "ecr:BatchGetImage",
+      "resource_scope": "arn:aws:ecr:il-central-1:108782097005:repository/compie-dev",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-instance",
+      "action": "ecr:GetAuthorizationToken",
+      "resource_scope": "*",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-instance",
+      "action": "ssm:UpdateInstanceInformation",
+      "resource_scope": "*",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-instance",
+      "action": "logs:PutLogEvents",
+      "resource_scope": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/app:*",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-instance",
+      "action": "logs:CreateLogStream",
+      "resource_scope": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/app:*",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-application-ci",
+      "action": "ecr:PutImage",
+      "resource_scope": "arn:aws:ecr:il-central-1:108782097005:repository/compie-dev",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-application-ci",
+      "action": "autoscaling:StartInstanceRefresh",
+      "resource_scope": "compie-dev-asg (ARN resolved by DescribeAutoScalingGroups)",
+      "decision": "allowed"
+    },
+    {
+      "role": "compie-dev-application-ci",
+      "action": "secretsmanager:GetSecretValue",
+      "resource_scope": "*",
+      "decision": "explicitDeny"
+    },
+    {
+      "role": "compie-dev-application-ci",
+      "action": "secretsmanager:BatchGetSecretValue",
+      "resource_scope": "*",
+      "decision": "explicitDeny"
+    },
+    {
+      "role": "compie-dev-infrastructure-ci",
+      "action": "secretsmanager:GetSecretValue",
+      "resource_scope": "*",
+      "decision": "explicitDeny"
+    },
+    {
+      "role": "compie-dev-infrastructure-ci",
+      "action": "secretsmanager:BatchGetSecretValue",
+      "resource_scope": "*",
+      "decision": "explicitDeny"
+    }
+  ],
+  "simulation_scope": "Normalized results collected during this audit. Simulations evaluate permissions without executing the listed operations or retrieving secret values.",
+  "runtime_logging_evidence": "app-runtime-log-proof.json contains recent requests delivered to CloudWatch. Simulation using the log-group ARN allowed writes. A separate simulation using a concrete log-stream ARN returned implicitDeny despite observed runtime delivery; that result was not treated as proof of a runtime outage, and no IAM policy change was made.",
+  "operator_follow_up": "The local CLI uses the AWS account root user. Move routine operator work to a non-root identity with temporary credentials. Runtime and both CI workflows use their dedicated roles."
+}
