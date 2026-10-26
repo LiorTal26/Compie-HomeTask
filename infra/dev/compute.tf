@@ -1,3 +1,5 @@
+# Public load balancer
+
 resource "aws_lb" "app" {
   name               = "${local.prefix}-alb"
   internal           = false
@@ -5,6 +7,7 @@ resource "aws_lb" "app" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.public[*].id
 }
+
 resource "aws_lb_target_group" "app" {
   name                 = "${local.prefix}-app"
   port                 = 8080
@@ -21,6 +24,7 @@ resource "aws_lb_target_group" "app" {
     unhealthy_threshold = 3
   }
 }
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app.arn
   port              = 80
@@ -43,12 +47,17 @@ resource "aws_lb_listener" "http" {
   # Keep the existing HTTP service available until TLS and DNS are ready.
   depends_on = [aws_lb_listener.https, aws_route53_record.app]
 }
+
+# Private instance template
+
 resource "aws_launch_template" "app" {
   name_prefix            = "${local.prefix}-"
   image_id               = data.aws_ssm_parameter.ami.value
   instance_type          = var.instance_type
   update_default_version = true
-  iam_instance_profile { name = "${local.prefix}-instance" }
+  iam_instance_profile {
+    name = "${local.prefix}-instance"
+  }
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.app.id]
@@ -70,11 +79,19 @@ resource "aws_launch_template" "app" {
   }
   tag_specifications {
     resource_type = "instance"
-    tags          = { Name = local.prefix, Project = var.project, Environment = "dev" }
+    tags = {
+      Name        = local.prefix,
+      Project     = var.project,
+      Environment = "dev"
+    }
   }
   tag_specifications {
     resource_type = "volume"
-    tags          = { Name = local.prefix, Project = var.project, Environment = "dev" }
+    tags = {
+      Name        = local.prefix,
+      Project     = var.project,
+      Environment = "dev"
+    }
   }
   user_data = base64encode(templatefile("${path.module}/user-data.sh.tftpl", {
     region            = var.aws_region
@@ -86,6 +103,9 @@ resource "aws_launch_template" "app" {
     host_log_group    = aws_cloudwatch_log_group.instance.name
   }))
 }
+
+# Capacity and rolling replacement
+
 resource "aws_autoscaling_group" "app" {
   name                      = "${local.prefix}-asg"
   min_size                  = 1
@@ -132,12 +152,13 @@ resource "aws_autoscaling_group" "app" {
   ]
 }
 
+# CPU target tracking
+
 resource "aws_autoscaling_policy" "cpu" {
   name                      = "${local.prefix}-cpu-target-tracking"
   autoscaling_group_name    = aws_autoscaling_group.app.name
   policy_type               = "TargetTrackingScaling"
   estimated_instance_warmup = 60
-
   target_tracking_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ASGAverageCPUUtilization"

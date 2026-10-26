@@ -1,3 +1,5 @@
+# Terraform state storage
+
 resource "aws_s3_bucket" "state" {
   bucket        = local.state_bucket
   force_destroy = true # Dedicated disposable assignment bucket; destroy removes old state versions.
@@ -13,7 +15,9 @@ resource "aws_s3_bucket_public_access_block" "state" {
 
 resource "aws_s3_bucket_versioning" "state" {
   bucket = aws_s3_bucket.state.id
-  versioning_configuration { status = "Enabled" }
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
@@ -28,17 +32,29 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
 resource "aws_s3_bucket_policy" "state" {
   bucket = aws_s3_bucket.state.id
   policy = jsonencode({
-    Version = "2012-10-17", Statement = [{
-      Sid       = "RequireTLS", Effect = "Deny", Principal = "*", Action = "s3:*",
+    Version = "2012-10-17",
+    Statement = [{
+      Sid       = "RequireTLS",
+      Effect    = "Deny",
+      Principal = "*",
+      Action    = "s3:*",
       Resource  = [aws_s3_bucket.state.arn, "${aws_s3_bucket.state.arn}/*"],
-      Condition = { Bool = { "aws:SecureTransport" = "false" } }
+      Condition = {
+        Bool = {
+          "aws:SecureTransport" = "false"
+        }
+      }
     }]
   })
 }
+
+# Container image registry
 
 resource "aws_ecr_repository" "app" {
   name                 = local.prefix
   image_tag_mutability = "IMMUTABLE"
   force_delete         = true # Only this assignment repository.
-  image_scanning_configuration { scan_on_push = true }
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 }

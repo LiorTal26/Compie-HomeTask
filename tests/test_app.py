@@ -18,7 +18,10 @@ class MemoryStore:
 
     def add(self, text):
         item_id = "1700000000000-" + str(uuid4())
-        self.items.insert(0, {"id": item_id, "text": text, "createdAt": "2026-10-25T12:00:00Z"})
+        self.items.insert(
+            0,
+            {"id": item_id, "text": text, "createdAt": "2026-10-25T12:00:00Z"},
+        )
         return item_id
 
     def remove(self, item_id):
@@ -28,7 +31,10 @@ class MemoryStore:
 class AppTest(unittest.TestCase):
     def setUp(self):
         self.store = MemoryStore()
-        self.app = create_app(self.store, {"welcomeMessage": "Demo", "tableName": "private-table"})
+        self.app = create_app(
+            self.store,
+            {"welcomeMessage": "Demo", "tableName": "private-table"},
+        )
         self.app.config["TESTING"] = True
         self.client = self.app.test_client()
 

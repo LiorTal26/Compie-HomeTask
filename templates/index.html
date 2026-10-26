@@ -10,48 +10,97 @@
 </head>
 <body>
   <header class="topbar">
-    <a href="/" class="brand"><span class="brand-mark">c.</span> compie <span class="brand-divider">/</span><span class="brand-detail">DEVOPS DEMO</span></a>
+    <a href="/" class="brand">
+      <span class="brand-mark">c.</span> compie
+      <span class="brand-divider">/</span>
+      <span class="brand-detail">DEVOPS DEMO</span>
+    </a>
     <span class="environment"><span class="dot"></span> DEV ENVIRONMENT</span>
   </header>
+
   <main>
     <section class="intro">
       <p class="eyebrow">A SMALL BOARD, BUILT TO SHIP</p>
       <h1>A place for<br>the next thing<span class="accent">.</span></h1>
       <p class="subtitle">{{ welcome }}</p>
     </section>
+
     <section class="board" aria-labelledby="board-title">
       <div class="board-heading">
-        <div><span class="section-number">01 /</span><h2 id="board-title">Your items</h2><span class="count">{{ items | length }}</span></div>
+        <div>
+          <span class="section-number">01 /</span>
+          <h2 id="board-title">Your items</h2>
+          <span class="count">{{ items | length }}</span>
+        </div>
         <a href="/" class="text-button">↻ Refresh</a>
       </div>
+
+      <!-- Add an item -->
       <form action="{{ url_for('add_item') }}" method="post" class="add-form">
         <label for="item-text" class="sr-only">New item</label>
-        <input id="item-text" name="text" placeholder="What would you like to add?" maxlength="200" required autocomplete="off"{% if not connected %} disabled{% endif %}>
-        <button class="add-button" type="submit"{% if not connected %} disabled{% endif %}>Add item <span aria-hidden="true">↗</span></button>
+        <input
+          id="item-text"
+          name="text"
+          placeholder="What would you like to add?"
+          maxlength="200"
+          required
+          autocomplete="off"{% if not connected %} disabled{% endif %}
+        >
+        <button class="add-button" type="submit"{% if not connected %} disabled{% endif %}>
+          Add item <span aria-hidden="true">↗</span>
+        </button>
       </form>
       <p class="message" role="status">{{ error or '' }}</p>
+
+      <!-- Stored items -->
       <ul class="items" aria-label="Stored items">
         {% for item in items %}
         <li data-item-id="{{ item.id }}">
           <span class="item-marker" aria-hidden="true"></span>
           <span class="item-text">{{ item.text }}</span>
           <time datetime="{{ item.createdAt }}">{{ item.createdAt[:10] }}</time>
-          <form action="{{ url_for('delete_item', item_id=item.id) }}" method="post" class="delete-form">
-            <button class="delete-button" type="submit" aria-label="Delete {{ item.text }}">×</button>
+          <form
+            action="{{ url_for('delete_item', item_id=item.id) }}"
+            method="post"
+            class="delete-form"
+          >
+            <button class="delete-button" type="submit" aria-label="Delete {{ item.text }}">
+              ×
+            </button>
           </form>
         </li>
         {% endfor %}
       </ul>
+
       {% if not items and connected %}
-      <div class="empty"><span class="empty-icon" aria-hidden="true">＋</span><h3>Start with one thing.</h3><p>Add an item above. It will be stored in DynamoDB.</p></div>
+      <div class="empty">
+        <span class="empty-icon" aria-hidden="true">＋</span>
+        <h3>Start with one thing.</h3>
+        <p>Add an item above. It will be stored in DynamoDB.</p>
+      </div>
       {% endif %}
-      <div class="board-footer"><span>SHARED BOARD · DEMO DATA ONLY</span><span>Showing up to 100 recent items</span></div>
+
+      <div class="board-footer">
+        <span>SHARED BOARD · DEMO DATA ONLY</span>
+        <span>Showing up to 100 recent items</span>
+      </div>
     </section>
+
+    <!-- Database and release status -->
     <footer class="statusbar">
-      <div><span class="dot{% if not connected %} offline{% endif %}"></span><span>Database {{ 'connected' if connected else 'unavailable' }}</span><span class="status-divider">/</span><span>Amazon DynamoDB</span></div>
+      <div>
+        <span class="dot{% if not connected %} offline{% endif %}"></span>
+        <span>Database {{ 'connected' if connected else 'unavailable' }}</span>
+        <span class="status-divider">/</span>
+        <span>Amazon DynamoDB</span>
+      </div>
       <span class="release-label">RELEASE <code>{{ version[:12] }}</code></span>
     </footer>
   </main>
-  <footer class="page-footer"><span>COMPIE / HOME ASSIGNMENT</span><span>Flask → Docker → GitHub Actions → AWS</span></footer>
+
+  <footer class="page-footer">
+    <span>COMPIE / HOME ASSIGNMENT</span>
+    <span>Flask → Docker → GitHub Actions → AWS</span>
+  </footer>
 </body>
 </html>

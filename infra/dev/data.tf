@@ -1,3 +1,5 @@
+# Encrypted DynamoDB table
+
 resource "aws_dynamodb_table" "items" {
   name         = local.table_name
   billing_mode = "PAY_PER_REQUEST"
@@ -15,34 +17,67 @@ resource "aws_dynamodb_table" "items" {
     enabled = true # AWS-managed aws/dynamodb key, rather than the default AWS-owned key.
   }
 }
+
+# Private database endpoint
+
 resource "aws_vpc_endpoint" "dynamodb" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = aws_route_table.private[*].id
   policy = jsonencode({
-    Version = "2012-10-17", Statement = [{
-      Effect    = "Allow", Principal = "*",
-      Action    = ["dynamodb:Query", "dynamodb:PutItem", "dynamodb:DeleteItem"],
-      Resource  = aws_dynamodb_table.items.arn,
-      Condition = { ArnEquals = { "aws:PrincipalArn" = local.app_role_arn } }
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Principal = "*",
+      Action = [
+        "dynamodb:Query",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
+      Resource = aws_dynamodb_table.items.arn,
+      Condition = {
+        ArnEquals = {
+          "aws:PrincipalArn" = local.app_role_arn
+        }
+      }
     }]
   })
-  tags = { Name = "${local.prefix}-dynamodb" }
+  tags = {
+    Name = "${local.prefix}-dynamodb"
+  }
 }
+
+# Application-only data access
+
 resource "aws_dynamodb_resource_policy" "items" {
   resource_arn = aws_dynamodb_table.items.arn
   policy = jsonencode({
-    Version = "2012-10-17", Statement = [
+    Version = "2012-10-17",
+    Statement = [
       {
-        Sid       = "DataOnlyThroughPrivateEndpoint", Effect = "Deny", Principal = "*",
-        Action    = local.data_actions, Resource = aws_dynamodb_table.items.arn,
-        Condition = { StringNotEquals = { "aws:SourceVpce" = aws_vpc_endpoint.dynamodb.id } }
+        Sid       = "DataOnlyThroughPrivateEndpoint",
+        Effect    = "Deny",
+        Principal = "*",
+        Action    = local.data_actions,
+        Resource  = aws_dynamodb_table.items.arn,
+        Condition = {
+          StringNotEquals = {
+            "aws:SourceVpce" = aws_vpc_endpoint.dynamodb.id
+          }
+        }
       },
       {
-        Sid       = "DataOnlyForApplicationRole", Effect = "Deny", Principal = "*",
-        Action    = local.data_actions, Resource = aws_dynamodb_table.items.arn,
-        Condition = { ArnNotEquals = { "aws:PrincipalArn" = local.app_role_arn } }
+        Sid       = "DataOnlyForApplicationRole",
+        Effect    = "Deny",
+        Principal = "*",
+        Action    = local.data_actions,
+        Resource  = aws_dynamodb_table.items.arn,
+        Condition = {
+          ArnNotEquals = {
+            "aws:PrincipalArn" = local.app_role_arn
+          }
+        }
       }
     ]
   })

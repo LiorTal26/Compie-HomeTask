@@ -3,7 +3,15 @@ name: Application
 on:
   push:
     branches: [main]
-    paths: ['app.py', 'templates/**', 'static/**', 'tests/**', 'requirements.txt', 'Dockerfile', '.dockerignore', '.github/workflows/application.yml']
+    paths:
+      - app.py
+      - templates/**
+      - static/**
+      - tests/**
+      - requirements.txt
+      - Dockerfile
+      - .dockerignore
+      - .github/workflows/application.yml
   workflow_dispatch:
     inputs:
       mode:
@@ -37,9 +45,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+
       - name: Validate settings
         env:
           ROLE_ARN: ${{ vars.APPLICATION_ROLE_ARN }}
@@ -49,6 +59,7 @@ jobs:
           if [ "$DEPLOY_MODE" = rollback ]; then
             [[ "$ROLLBACK_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
           fi
+
       - name: Build and test the Flask container
         if: env.DEPLOY_MODE != 'rollback'
         run: |
@@ -77,21 +88,25 @@ jobs:
           assert 'Pipeline database check' not in client.get('/').get_data(as_text=True)
           print('PASS: real DynamoDB Local create, read, and delete.')
           "
+
       - name: Container diagnostics
         if: failure() && env.DEPLOY_MODE != 'rollback'
         run: |
           docker logs compie-app || true
           docker logs compie-db || true
+
       - name: Stop test containers
         if: always() && env.DEPLOY_MODE != 'rollback'
         run: |
           docker rm -f compie-app compie-db || true
           docker network rm compie-test || true
+
       - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           role-to-assume: ${{ vars.APPLICATION_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: compie-app-${{ github.run_id }}
+
       - name: Push or select image
         env:
           ROLLBACK_DIGEST: ${{ inputs.image_digest }}
@@ -110,6 +125,7 @@ jobs:
           fi
           [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
           echo "IMAGE_URI=$ECR_REPOSITORY@$digest" >> "$GITHUB_ENV"
+
       - name: Release through ASG Instance Refresh
         run: |
           asg=compie-dev-asg
@@ -153,6 +169,7 @@ jobs:
             echo "Refresh timed out. Use manual rollback."
             exit 1
           fi
+
       - name: Verify public page and DB health
         if: env.DEPLOY_MODE != 'bootstrap'
         run: |

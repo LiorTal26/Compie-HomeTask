@@ -45,6 +45,17 @@ Reviewed on **October 26, 2026**; individual evidence files retain their capture
 - [x] A push of application changes to `main` builds/tests, pushes ECR, and rolls the ASG without manual AWS console steps. [Successful release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134).
 - [x] Triggers, bootstrap, rollback procedure, apply/destroy, and capacity are documented. Credentials and state are excluded from the ZIP.
 
+## Repository map
+
+| Start here | Purpose |
+|---|---|
+| [app.py](app.py), [templates/](templates), [static/](static), [tests/](tests) | Flask routes, HTML, CSS, and unit checks |
+| [Dockerfile](Dockerfile) | Application image and runtime settings |
+| [infra/bootstrap/](infra/bootstrap) | State bucket, ECR, configuration metadata, and IAM |
+| [infra/dev/](infra/dev) | Network, database, compute, HTTPS, logs, and alerts |
+| [.github/workflows/](.github/workflows) | Application delivery, infrastructure changes, and PR checks |
+| [Validation evidence](#validation-evidence) | Recorded checks, screenshots, and verification limits |
+
 ## Run locally
 
 Use PowerShell 7 from the repository root, with Docker Desktop running Linux containers. No AWS credentials are needed. The application exposes `/` and `GET /health`; health performs a real database query and returns `200` or `503`.
@@ -197,18 +208,30 @@ aws logs tail /compie/dev/app --since 15m --region il-central-1
 aws logs tail /compie/dev/instance --since 15m --region il-central-1
 ```
 
-## Verification evidence
+## Validation evidence
 
-| Requirement | Recorded proof |
+Captured on October 25–26, 2026, in `il-central-1`. Individual files retain their capture times. [Validation summary and limits](evidence/validation-summary.md).
+
+| Area | Evidence |
 |---|---|
-| Local Docker: `/`, `/health`, non-root runtime | [HTTP results](evidence/docker-local-http.json), [container inspection](evidence/docker-runtime.json) |
-| Commit → running application | [Successful push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [replacement activity](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png); existing DB items survived replacement |
-| Infrastructure plan / apply | [Final no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968), [earlier manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960); HTTPS retained with the correct DNS inputs |
-| HTTPS CI/CD release | [Final application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630); database health, commit verification, and encrypted-instance refresh passed |
-| Private networking, IAM, KMS | [Network checks](evidence/network-compute-checks.json), [security checks](evidence/security-checks.json), [database denial test](evidence/database-operator-probe.json) |
-| Usable app / instance logs | [App records](evidence/app-logs.txt), [startup records](evidence/instance-logs.txt) |
-| Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json); initial provisioning transitions, not an injected outage |
-| Live HTTPS & DynamoDB Persistence | [Live items board screenshot](evidence/live-app-dynamodb-proof.png), [DynamoDB live table scan proof](evidence/dynamodb-live-proof.json); verified writes from HTTPS UI persisted to `compie-dev-items` table |
+| Architecture | [PNG](docs/architecture.png), [editable SVG](docs/architecture.svg) |
+| Local Docker | [HTTP checks](evidence/docker-local-http.json), [runtime inspection](evidence/docker-runtime.json), [local checks](evidence/local-validation.md) |
+| Live application and database | [HTTPS items board](evidence/live-app-dynamodb-proof.png), [DynamoDB write proof](evidence/dynamodb-live-proof.json), [health response](evidence/live-health.json) |
+| Commit → running application | [Push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [final HTTPS release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630), [workflow metadata](evidence/workflow-run.json) |
+| ASG capacity and replacement | [ASG overview](evidence/ASG%20PROOF.png), [replacement activity](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png); existing items survived replacement |
+| Terraform | [Bootstrap record](evidence/aws-bootstrap.md), [initial dev apply](evidence/terraform%20apply%20output%20proof.png), [final no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968), [earlier manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960) |
+| Network and compute | [VPC, routes, security groups, private instances, and healthy targets](evidence/network-compute-checks.json) |
+| Image, configuration, and IAM | [ECR, secret metadata, instance profile, OIDC, and permission checks](evidence/image-config-iam-checks.json) |
+| Encryption and runtime security | [KMS and CI access checks](evidence/security-checks.json); encrypted replacement EBS verified in the ZIP evidence |
+| Private database access | [Table and endpoint policies](evidence/database-checks.json), [successful non-root denial](evidence/database-operator-probe.json) |
+| Earlier database probes | [Root comparison](evidence/database-outside-endpoint.json), [temporary-role audit](evidence/database-nonroot-probe.json); root access succeeded, initial role test was inconclusive |
+| Local operator | [Scoped read-only role setup](evidence/operator-setup.json) |
+| Application logs | [Request records](evidence/app-logs.txt), [runtime log delivery](evidence/app-runtime-log-proof.json) |
+| Instance logs | [CloudWatch startup records](evidence/instance-logs.txt) |
+| Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json) |
+| PR checks | [PR #1](https://github.com/LiorTal26/Compie-HomeTask/pull/1), [successful validation run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40227492186) |
+
+Alarm messages show initial provisioning and recovery, not an injected outage. Manual rollback, teardown, and load-triggered scaling were not tested. Public snapshots include resource identifiers but no credentials or secret values; the latest detailed audit captures stay in the local ZIP.
 
 <details>
 <summary>Application and deployment screenshots</summary>
@@ -223,7 +246,7 @@ Public snapshots captured during the assignment; the ZIP contains the latest app
 
 </details>
 
-See the [evidence index](evidence/README.md) and [validation summary](evidence/validation-summary.md) for detailed results and limits. Additional detailed audit snapshots collected in this review are kept in the local submission ZIP. Existing public demo evidence remains in the repository. The architecture image is generated from the Terraform layout.
+The architecture image is generated from the Terraform layout. Detailed results and limits are in the [validation summary](evidence/validation-summary.md).
 
 ## Destroy the AWS environment
 

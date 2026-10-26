@@ -1,8 +1,12 @@
+# Certificate and DNS validation
+
 resource "aws_acm_certificate" "app" {
   count             = local.https_enabled ? 1 : 0
   domain_name       = var.domain_name
   validation_method = "DNS"
-  lifecycle { create_before_destroy = true }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "certificate_validation" {
@@ -21,6 +25,8 @@ resource "aws_acm_certificate_validation" "app" {
   validation_record_fqdns = [aws_route53_record.certificate_validation[0].fqdn]
 }
 
+# Application DNS alias
+
 resource "aws_route53_record" "app" {
   count           = local.https_enabled ? 1 : 0
   zone_id         = var.hosted_zone_id
@@ -33,6 +39,8 @@ resource "aws_route53_record" "app" {
     evaluate_target_health = true
   }
 }
+
+# HTTPS listener and ingress
 
 resource "aws_lb_listener" "https" {
   count             = local.https_enabled ? 1 : 0
