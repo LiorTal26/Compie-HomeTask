@@ -35,16 +35,20 @@ jobs:
     timeout-minutes: 40
     steps:
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # CI: Validate and plan
+
+      - name: CI | Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      - name: CI | Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: '1.13.5'
           terraform_wrapper: false
 
-      - name: Format and validate
+      - name: CI | Format and validate
         run: |
           terraform fmt -check -recursive infra
           terraform -chdir=infra/bootstrap init -backend=false -lockfile=readonly
@@ -52,13 +56,14 @@ jobs:
           terraform -chdir=infra/dev init -backend=false -lockfile=readonly
           terraform -chdir=infra/dev validate
 
-      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+      - name: CI | Assume infrastructure role
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           role-to-assume: ${{ vars.INFRASTRUCTURE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: compie-infra-${{ github.run_id }}
 
-      - name: Initialize dev backend and plan
+      - name: CI | Initialize dev backend and plan
         env:
           STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
         run: |
@@ -77,7 +82,9 @@ jobs:
           fi
           terraform -chdir=infra/dev plan -no-color -lock-timeout=5m -out=dev.tfplan
 
-      - name: Apply the plan from this run
+      # CD: Apply manually and verify health
+
+      - name: CD | Apply the plan from this run
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'apply'
         run: |
           terraform -chdir=infra/dev apply -no-color -lock-timeout=5m dev.tfplan

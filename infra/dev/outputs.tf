@@ -1,3 +1,5 @@
+# Application and compute
+
 output "application_url" {
   description = "Public URL to access the application (HTTPS if custom domain configured, else ALB HTTP DNS)."
   value       = local.https_enabled ? "https://${var.domain_name}" : "http://${aws_lb.app.dns_name}"
@@ -13,6 +15,8 @@ output "target_group_arn" {
   value       = aws_lb_target_group.app.arn
 }
 
+# Database
+
 output "database_table" {
   description = "Name of the KMS-encrypted DynamoDB table."
   value       = aws_dynamodb_table.items.name
@@ -22,6 +26,8 @@ output "dynamodb_endpoint_id" {
   description = "ID of the DynamoDB Gateway VPC Endpoint."
   value       = aws_vpc_endpoint.dynamodb.id
 }
+
+# Monitoring and alerting
 
 output "alarm_name" {
   description = "CloudWatch metric alarm monitoring unhealthy ALB targets."

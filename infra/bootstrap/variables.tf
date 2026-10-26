@@ -1,3 +1,5 @@
+# Deployment settings
+
 variable "aws_region" {
   type        = string
   default     = "il-central-1"
@@ -14,6 +16,8 @@ variable "project" {
   }
 }
 
+# GitHub OIDC trust
+
 variable "github_subject" {
   type        = string
   description = "Exact GitHub Actions OIDC subject claim for repository and main branch (e.g. repo:Org/Repo:ref:refs/heads/main)."
@@ -28,6 +32,8 @@ variable "existing_oidc_provider_arn" {
   default     = ""
   description = "ARN of an existing GitHub OIDC provider in the AWS account. Leave empty to let bootstrap create it."
 }
+
+# Optional HTTPS permissions
 
 variable "https_domain_name" {
   type        = string

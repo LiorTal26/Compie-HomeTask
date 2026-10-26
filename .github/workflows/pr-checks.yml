@@ -13,8 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # CI: Terraform checks
+
   terraform:
-    name: Terraform validation
+    name: CI | Terraform validation
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -36,8 +38,10 @@ jobs:
           terraform -chdir=infra/dev init -backend=false -lockfile=readonly
           terraform -chdir=infra/dev validate
 
+  # CI: Application checks
+
   application:
-    name: Container build and unit tests
+    name: CI | Container build and unit tests
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

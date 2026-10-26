@@ -1,3 +1,5 @@
+# Deployment settings
+
 variable "aws_region" {
   type        = string
   default     = "il-central-1"
@@ -15,6 +17,8 @@ variable "instance_type" {
   default     = "t3.micro"
   description = "EC2 instance size for the private application Auto Scaling Group."
 }
+
+# Optional HTTPS
 
 variable "domain_name" {
   type        = string
