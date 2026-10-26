@@ -102,10 +102,10 @@ $env:AWS_PROFILE = "YOUR_PROVISIONING_PROFILE"
 aws sts get-caller-identity
 Copy-Item infra/bootstrap/terraform.tfvars.example infra/bootstrap/terraform.tfvars
 # Edit infra/bootstrap/terraform.tfvars before continuing.
-terraform -chdir=infra/bootstrap init
-terraform -chdir=infra/bootstrap plan "-out=bootstrap.tfplan"
-terraform -chdir=infra/bootstrap apply bootstrap.tfplan
-terraform -chdir=infra/bootstrap output
+terraform "-chdir=infra/bootstrap" init
+terraform "-chdir=infra/bootstrap" plan "-out=bootstrap.tfplan"
+terraform "-chdir=infra/bootstrap" apply bootstrap.tfplan
+terraform "-chdir=infra/bootstrap" output
 ```
 
 Bootstrap creates ECR, the private versioned state bucket, GitHub OIDC roles, the EC2 instance profile, configuration-secret metadata, and the release parameter. Its state stays local: retain it until teardown and exclude it from submission.
@@ -126,7 +126,7 @@ Populate the secret separately so configuration values stay out of Terraform sta
 ```powershell
 New-Item -ItemType Directory -Path .local -Force
 '{"welcomeMessage":"A small app. A complete delivery path.","tableName":"compie-dev-items"}' | Set-Content .local/app-config.json -Encoding utf8
-$secret = terraform -chdir=infra/bootstrap output -raw app_config_secret_arn
+$secret = terraform "-chdir=infra/bootstrap" output -raw app_config_secret_arn
 aws secretsmanager put-secret-value --secret-id $secret --secret-string file://.local/app-config.json --region il-central-1
 ```
 
@@ -152,8 +152,8 @@ In **Actions → Application → Run workflow**, select branch `main` and mode *
 Initialize the dev backend and apply the environment:
 
 ```powershell
-$bucket = terraform -chdir=infra/bootstrap output -raw state_bucket
-terraform -chdir=infra/dev init `
+$bucket = terraform "-chdir=infra/bootstrap" output -raw state_bucket
+terraform "-chdir=infra/dev" init `
   "-backend-config=bucket=$bucket" `
   "-backend-config=key=dev/terraform.tfstate" `
   "-backend-config=region=il-central-1" `
@@ -161,9 +161,9 @@ terraform -chdir=infra/dev init `
   "-backend-config=use_lockfile=true"
 Copy-Item infra/dev/terraform.tfvars.example infra/dev/terraform.tfvars
 # For HTTPS, edit domain_name and hosted_zone_id to your own DNS inputs.
-terraform -chdir=infra/dev plan "-out=dev.tfplan"
-terraform -chdir=infra/dev apply dev.tfplan
-$url = terraform -chdir=infra/dev output -raw application_url
+terraform "-chdir=infra/dev" plan "-out=dev.tfplan"
+terraform "-chdir=infra/dev" apply dev.tfplan
+$url = terraform "-chdir=infra/dev" output -raw application_url
 Invoke-RestMethod "$url/health"
 ```
 
@@ -256,10 +256,11 @@ The architecture image is generated from the Terraform layout. Detailed results 
 Save evidence first, stop deployments, and use the provisioning profile and initialized backend from setup. **Destroy dev before bootstrap**; retain local bootstrap state until both steps finish.
 
 ```powershell
-terraform -chdir=infra/dev plan -destroy "-out=destroy.tfplan"
-terraform -chdir=infra/dev apply destroy.tfplan
-terraform -chdir=infra/bootstrap plan -destroy "-out=destroy.tfplan"
-terraform -chdir=infra/bootstrap apply destroy.tfplan
+$env:AWS_PROFILE = "compie-root-bootstrap"
+terraform "-chdir=infra/dev" plan -destroy "-out=destroy.tfplan"
+terraform "-chdir=infra/dev" apply destroy.tfplan
+terraform "-chdir=infra/bootstrap" plan -destroy "-out=destroy.tfplan"
+terraform "-chdir=infra/bootstrap" apply destroy.tfplan
 ```
 
 The assignment's ECR repository and state bucket allow deletion of their project images/objects; the disposable secret has no recovery window. A reused OIDC provider is preserved. Confirm resources are gone before discarding bootstrap state. The environment has not been destroyed as part of this documentation review. ALB, NAT, EC2/EBS, public IPv4, logs, and requests incur charges; the US$15 target is not a spending cap.
