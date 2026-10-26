@@ -6,42 +6,44 @@ A small Flask application with server-rendered HTML, DynamoDB storage, and GitHu
 
 The second EC2 represents optional scale-out capacity. [Editable diagram](docs/architecture.svg).
 
-[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960)
+[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40273788472)
 
-Verified on **October 25, 2026**. The application release is `8d4597b`; infrastructure bonuses and live HTTPS were verified on `main`. The temporary AWS environment may be removed after review.
+Reviewed on **October 26, 2026**; individual evidence files retain their capture timestamps. The application release is `8d4597b`; infrastructure bonuses and live HTTPS were verified on `main`. The temporary AWS environment may be removed after review.
 
-## Requirements & Evaluation Checklist
+## Requirements checklist
 
-This project fulfills all mandatory specifications, evaluation criteria, and multiple bonus objectives from the Compie DevOps Home Task:
+### Guidelines — Docker
 
-### Core Requirements
-- [x] **Web Application & Health Check:** Minimalist Flask/Gunicorn app exposing `/` (CRUD items) and `GET /health` (executes live query against DynamoDB; returns 200 or 503).
-- [x] **Containerization:** Digest-pinned Python base, non-root user (`10001`), read-only root filesystem, dropped capabilities (`ALL`), and health check configured.
-- [x] **Cloud Infrastructure (Terraform):** High-availability VPC across two AZs with public subnets (ALB, NAT) and private subnets (EC2 ASG). No public IPs on compute.
-- [x] **Managed Database:** AWS DynamoDB on-demand table with Gateway VPC Endpoint, table IAM resource policy, and KMS encryption at rest (`aws/dynamodb`).
-- [x] **Logging & Traceability:** Application access/error logs streamed via Docker `awslogs` driver to `/compie/dev/app`. System & cloud-init logs streamed to `/compie/dev/instance`.
-- [x] **Alerting Pipeline:** CloudWatch metric alarm on service health (`HealthyHostCount < 1` for 2 periods) wired to SNS topic and dispatched to an SQS queue placeholder.
-- [x] **CI/CD Automation:** GitHub Actions with AWS OIDC temporary credentials (no static access keys). Push to `main` triggers automated build, test, ECR push, and zero-downtime ASG Instance Refresh.
-- [x] **Operational Documentation:** Clear runbook for local execution, initial bootstrap, dev provisioning, rollback, capacity planning, and complete clean teardown.
+- [x] Dockerfile with pinned slim base, non-root user, Gunicorn, and DB-backed health check.
+- [x] Clean local run and verified `/` and `/health`: [local HTTP proof](evidence/docker-local-http.json), [container settings](evidence/docker-runtime.json).
 
-### Bonus Implementations
-- [x] **HTTPS on Public Endpoint:** DNS-validated AWS ACM certificate on custom subdomain [`https://compie.tal-handassa.com`](https://compie.tal-handassa.com), ALB HTTPS listener (TLS 1.3/1.2), and automatic HTTP 301 redirection.
-- [x] **Encrypted EBS on Launch Template:** EC2 root volume (`/dev/xvda`, gp3) explicitly encrypted at rest with AWS KMS (`aws/ebs`).
-- [x] **Dynamic Auto Scaling Policy:** `aws_autoscaling_policy` with `TargetTrackingScaling` tracking average ASG CPU at 70%.
-- [x] **CloudWatch Monitoring Dashboard:** Pre-configured `compie-dev-dashboard` with 4 widgets (ALB health/requests, ASG CPU utilization, DynamoDB consumed capacity/latency, and alarm threshold indicator).
-- [x] **PR / Pre-Merge Validation Checks:** Dedicated workflow (`pr-checks.yml`) running `terraform fmt -check`, `terraform validate`, and container unit tests on pull requests without requiring AWS credentials.
-- [x] **Architecture Diagrams & Visual Assets:** Comprehensive visual layouts available in [architecture.html](architecture.html) (interactive), `docs/architecture.png`, and `docs/architecture.svg`.
-- [x] **AI Collaboration & Assessment Artifacts:** Thorough documentation of AI pair programming workflows, validation summaries, and proof logs in `evidence/`.
+### Guidelines — Infrastructure (Terraform)
 
-### Alignment with Evaluation Criteria
-| Criterion | Project Implementation & Proof |
-|---|---|
-| **1. Correctness** | Application publicly reachable; `/health` validates live DynamoDB connectivity; automated instance refresh maintains zero downtime. |
-| **2. Elegance / Maintainability** | Clean modular Terraform roots (`infra/bootstrap` vs `infra/dev`), pinned provider/tool versions, strict variable validation, zero hardcoded secrets. |
-| **3. Security** | 100% private compute tier; IMDSv2 enforced; least-privilege IAM policies; Secrets Manager for runtime configuration; KMS encryption across DynamoDB, Secrets, and EBS. |
-| **4. Logging & Monitoring** | Structured JSON logs in CloudWatch Logs; proactive metric alerting wired to SNS/SQS; centralized CloudWatch Dashboard. |
-| **5. Pipeline** | Fully automated delivery on commit to `main`; PR validation gates; OIDC security; immutable digest deployments; verified rollback path. |
-| **6. Documentation** | Complete, reproducible README covering local setup, cloud provisioning, capacity trade-offs, operations, and verified teardown.
+**Networking and compute**
+
+- [x] One VPC, two public and two private subnets across two AZs; public ALB and private EC2 ASG without public IPs.
+- [x] Terraform launch template, target group, ELB health checks, and sensible `1 / 1 / 2` initial capacity; SSM access and ALB-only application ingress.
+- [x] Capacity/scaling trade-offs documented below; no ECS, EKS, or Kubernetes.
+
+**Image, config, and IAM**
+
+- [x] Immutable ECR image; runtime configuration read from Secrets Manager using the instance role.
+- [x] Separate runtime, application CI, and infrastructure CI roles. OIDC for CI; explicit denial of app-secret value reads. Certificate and DNS management are scoped to this app.
+
+**Data store**
+
+- [x] DynamoDB on-demand with AWS-managed KMS encryption, a gateway endpoint, and app-role/endpoint data-access restrictions. [Database evidence](evidence/database-checks.json).
+- [x] Real database health query and item operations. No database password or static AWS credentials in the image.
+
+**Logging, encryption, and monitoring**
+
+- [x] App and instance logs in CloudWatch with seven-day retention; KMS encryption for DynamoDB, Secrets Manager, and EBS.
+- [x] Healthy-target alarm → SNS → SQS placeholder, with topic/subscription/queue policies and received alarm/recovery evidence. The production receiver is described below.
+
+### Guidelines — CI/CD
+
+- [x] A push of application changes to `main` builds/tests, pushes ECR, and rolls the ASG without manual AWS console steps. [Successful release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134).
+- [x] Triggers, bootstrap, rollback procedure, apply/destroy, and capacity are documented. Credentials and state are excluded from the ZIP.
 
 ## Run locally
 
@@ -82,7 +84,7 @@ Prerequisites: Terraform **1.13.5**, AWS CLI v2, Git, a GitHub repository using 
 
 ### 1. Bootstrap the account
 
-Copy the example and edit `github_subject` to match your repository's exact main-branch OIDC subject. This repository uses `repo:LiorTal26@91834069/Compie-HomeTask@1433129391:ref:refs/heads/main`. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider.
+Copy the example and edit `github_subject` to match your repository's exact main-branch OIDC subject. This repository uses `repo:LiorTal26@91834069/Compie-HomeTask@1433129391:ref:refs/heads/main`. Set `existing_oidc_provider_arn` if the account already has GitHub's OIDC provider. For HTTPS, also set `https_domain_name` and `https_hosted_zone_id` in bootstrap inputs; these restrict CI certificate/DNS permissions to your app hostname and existing public zone.
 
 ```powershell
 $env:AWS_PROFILE = "YOUR_PROVISIONING_PROFILE"
@@ -97,9 +99,9 @@ terraform -chdir=infra/bootstrap output
 
 Bootstrap creates ECR, the private versioned state bucket, GitHub OIDC roles, the EC2 instance profile, configuration-secret metadata, and the release parameter. Its state stays local: retain it until teardown and exclude it from submission.
 
-### Infrastructure Layout & Modular Organization
+### Infrastructure layout
 
-Both Terraform roots are modularized into concise, single-responsibility files with minimal and explicit variable definitions (`variables.tf`, `outputs.tf`, `terraform.tfvars.example`):
+Both Terraform roots are split into files by responsibility with explicit variable definitions (`variables.tf`, `outputs.tf`, `terraform.tfvars.example`):
 
 | Root | Files | Purpose |
 |---|---|---|
@@ -126,7 +128,9 @@ In **GitHub → Settings → Secrets and variables → Actions → Variables**, 
 | `APPLICATION_ROLE_ARN` | Bootstrap output `application_role_arn` |
 | `INFRASTRUCTURE_ROLE_ARN` | Bootstrap output `infrastructure_role_arn` |
 | `TF_STATE_BUCKET` | Bootstrap output `state_bucket` |
-| `APPLICATION_URL` | Set after the first dev apply below. |
+| `APPLICATION_URL` | Set after the first dev apply below; currently `https://compie.tal-handassa.com`. |
+| `APPLICATION_DOMAIN` | HTTPS hostname, e.g. `compie.tal-handassa.com`; leave empty for HTTP. |
+| `ROUTE53_ZONE_ID` | Your existing public hosted-zone ID; set together with `APPLICATION_DOMAIN`. |
 
 AWS access keys are not stored in GitHub. Both workflows use OIDC temporary credentials.
 
@@ -145,6 +149,7 @@ terraform -chdir=infra/dev init `
   "-backend-config=encrypt=true" `
   "-backend-config=use_lockfile=true"
 Copy-Item infra/dev/terraform.tfvars.example infra/dev/terraform.tfvars
+# For HTTPS, edit domain_name and hosted_zone_id to your own DNS inputs.
 terraform -chdir=infra/dev plan "-out=dev.tfplan"
 terraform -chdir=infra/dev apply dev.tfplan
 $url = terraform -chdir=infra/dev output -raw application_url
@@ -158,9 +163,10 @@ Set GitHub's **`APPLICATION_URL`** variable to `$url`. Open that URL and add an 
 | Workflow | Trigger | Result |
 |---|---|---|
 | [Application](.github/workflows/application.yml) | Push to `main` changing app code, templates, static files, tests, `requirements.txt`, `Dockerfile`, `.dockerignore`, or its workflow. Manual mode: `release`. | Build → unit and real DynamoDB Local CRUD checks → ECR push → update SSM image digest → ASG Instance Refresh → verify `/`, DB health, and release commit. |
+| [PR checks](.github/workflows/pr-checks.yml) | Open/update a PR targeting `main`, or manual dispatch. | Terraform format/validation for both roots and a container build/unit tests. Read-only GitHub access; no AWS credentials or deployment. |
 | [Infrastructure](.github/workflows/infrastructure.yml) | Push to `main` changing `infra/**` or its workflow: **plan only**. Manual `operation: apply`: **plan and apply**. | Format, validate, initialize the same S3 backend, and generate a plan. Manual apply uses that run's saved plan and checks health. |
 
-Both workflows share `compie-dev-write` concurrency; avoid a local apply during a deployment. README/evidence/diagram-only changes do not trigger either workflow. GitHub variables and initial bootstrap are the only setup steps before automatic releases.
+The application and infrastructure workflows share `compie-dev-write` concurrency; avoid a local apply during a deployment. README/evidence/diagram-only changes do not trigger either workflow. Set the HTTPS repository variables before using Infrastructure CI. If HTTPS already exists in state, the workflow rejects empty DNS inputs to prevent an accidental downgrade.
 
 Images use immutable tags and are deployed by digest. The pipeline owns `/compie/dev/release-image`; Terraform ignores changes to its value. Instance Refresh launches healthy replacements before terminating old instances (`100%` minimum healthy, `200%` maximum, `SkipMatching=false`).
 
@@ -175,8 +181,9 @@ One steady instance and one NAT gateway keep the exercise small but permit insta
 | Control | Implementation |
 |---|---|
 | Network | Two public and two private subnets across two AZs. Public routes use the Internet Gateway; private egress uses one NAT. EC2 has no public IP. |
-| Access | Public ALB accepts HTTP `80`; EC2 accepts `8080` only from the ALB security group. IMDSv2 is required; administration uses SSM, with no SSH ingress. |
+| Access | Public ALB accepts HTTPS `443` with ACM and redirects HTTP `80` to the canonical HTTPS hostname; EC2 accepts `8080` only from the ALB security group. IMDSv2 is required; administration uses SSM, with no SSH ingress. |
 | Database | DynamoDB on-demand. Gateway endpoint, endpoint policy, and table policy restrict app data access to the application role through that endpoint. A non-root outside-endpoint denial was verified; the earlier root comparison succeeded and is recorded in the evidence. |
+| EBS | The launch template encrypts the root gp3 disk. The replacement instance's attached volume was verified encrypted with the AWS-managed EBS key. |
 | Configuration / KMS | Flask reads runtime JSON from Secrets Manager at startup using its instance role. DynamoDB uses `aws/dynamodb`; Secrets Manager uses `aws/secretsmanager`. Both AWS-managed KMS keys were verified enabled. Configuration changes require an app restart or instance refresh. |
 | IAM | Separate EC2 runtime, application CI, and infrastructure CI roles. CI explicitly denies secret-value reads. Infrastructure CI can pass only the project instance role. Routine local inspection uses a separate read-only operator. |
 | Logs | App request IDs, status, duration, and release version → Docker `awslogs` → `/compie/dev/app`. CloudWatch agent sends cloud-init/bootstrap/service logs → `/compie/dev/instance`. Both retain seven days. |
@@ -215,7 +222,7 @@ Public snapshots captured during the assignment; the ZIP contains the latest app
 
 </details>
 
-See the [evidence index](evidence/README.md) and [validation summary](evidence/validation-summary.md) for detailed results and limits. New detailed AWS snapshots and screenshots are kept in the local submission ZIP, rather than published to this repository. The architecture image is generated from the Terraform layout.
+See the [evidence index](evidence/README.md) and [validation summary](evidence/validation-summary.md) for detailed results and limits. Additional detailed audit snapshots collected in this review are kept in the local submission ZIP. Existing public demo evidence remains in the repository. The architecture image is generated from the Terraform layout.
 
 ## Destroy the AWS environment
 
@@ -248,3 +255,26 @@ if (Test-Path output/submission-evidence) {
 ```
 
 After extracting, `git clone -b main ./git-history.bundle review-copy` restores public source history. Keep the ZIP's evidence files alongside it for the private snapshots.
+
+## Bonus deliverables
+
+- [x] **CloudWatch dashboard:** four live-metric widgets; screenshot included in the ZIP.
+- [x] **Architecture diagram/network sketch:** [PNG](docs/architecture.png), [editable SVG](docs/architecture.svg), and earlier HTML variants.
+- [x] **AI-use artifacts:** [short implementation notes](docs/ai-notes.md) and the validation/evidence records.
+- [ ] **Customer-managed KMS key:** deferred. AWS-managed keys cover database, configuration, and EBS encryption.
+- [x] **Encrypted EBS in the launch template:** `encrypted = true`; encryption verified on the replacement root volume.
+- [x] **HTTPS public endpoint:** [compie.tal-handassa.com](https://compie.tal-handassa.com), ACM DNS validation, TLS 1.2/1.3 listener, and HTTP 301 redirect.
+- [x] **Dynamic ASG scaling:** CPU target tracking at 70%, with 60-second warmup. Configuration verified; no load-triggered scaling test performed.
+- [x] **PR / pre-merge checks:** [PR #1](https://github.com/LiorTal26/Compie-HomeTask/pull/1) passed [Terraform and container checks](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40227492186). These are checks, not a claim that branch protection is enforced.
+- [ ] **Second environment:** deferred; the submission contains one dev environment.
+
+## Evaluation criteria — evidence map
+
+| Assignment criterion | What was demonstrated |
+|---|---|
+| **1. Correctness** | Live HTTPS page, real database health, item persistence, successful Terraform provisioning, and a healthy replacement with encrypted EBS. |
+| **2. Elegance / maintainability** | Two Terraform roots, files grouped by responsibility, pinned tools/providers, small Flask app, and documented configuration inputs. |
+| **3. Security** | Private compute, ALB-only application ingress, SSM/IMDSv2, separate OIDC roles, scoped app DNS/certificate permissions, Secrets Manager, and KMS-backed encryption. |
+| **4. Logging / monitoring** | Reachable request/startup logs, healthy-target alarm, SNS/SQS delivery evidence, and a dashboard screenshot. |
+| **5. Pipeline** | Commit-to-running-app release and successful PR checks. Manual rollback is implemented but untested; zero downtime was not measured. |
+| **6. Documentation** | Local run, bootstrap/apply, pipeline triggers, capacity, rollback, teardown commands, diagrams, screenshots, and linked proof. Teardown is documented; the current stack remains provisioned. |

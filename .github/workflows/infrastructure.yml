@@ -64,6 +64,12 @@ jobs:
             -backend-config="region=$AWS_REGION" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
+          if terraform -chdir=infra/dev state list | grep -q '^aws_lb_listener\.https'; then
+            if [ -z "$TF_VAR_domain_name" ] || [ -z "$TF_VAR_hosted_zone_id" ]; then
+              echo "HTTPS already exists. Set APPLICATION_DOMAIN and ROUTE53_ZONE_ID; refusing to plan its removal with empty inputs."
+              exit 1
+            fi
+          fi
           terraform -chdir=infra/dev plan -no-color -lock-timeout=5m -out=dev.tfplan
       - name: Apply the plan from this run
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'apply'

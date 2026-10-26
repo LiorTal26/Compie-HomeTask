@@ -9,8 +9,8 @@
 <text x="1193" y="84.96" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#2866c8">il-central-1  /  dev</text>
 <rect x="80" y="170" width="285" height="74" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
 <rect x="80" y="186" width="4" height="42" rx="2" fill="#2866c8"/>
-<text x="100" y="201.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">Web browser</text>
-<text x="100" y="228.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Public application URL</text>
+<text x="100" y="201.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">HTTPS browser</text>
+<text x="100" y="228.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">compie.tal-handassa.com</text>
 <rect x="1020" y="170" width="380" height="74" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
 <rect x="1020" y="186" width="4" height="42" rx="2" fill="#2866c8"/>
 <text x="1040" y="201.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">GitHub Actions</text>
@@ -28,7 +28,7 @@
 <text x="115" y="620.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#246b5b">ASG: 1-2 EC2 / CPU 70% / warmup 60s</text>
 <polyline points="222,244 222,264 645,264 645,444" fill="none" stroke="#2866c8" stroke-width="3"/>
 <polygon points="645.00,444.00 640.00,435.34 650.00,435.34" fill="#2866c8"/>
-<text x="438" y="252.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2866c8">HTTP :80</text>
+<text x="438" y="252.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2866c8">HTTPS :443</text>
 <polyline points="645,506 645,548 500,548 500,627 292,627 292,636" fill="none" stroke="#2866c8" stroke-width="3"/>
 <polygon points="292.00,636.00 287.00,627.34 297.00,627.34" fill="#2866c8"/>
 <polyline points="645,548 705,548 705,636" fill="none" stroke="#81a5c0" stroke-width="2" stroke-dasharray="10 8"/>
@@ -52,11 +52,11 @@
 <rect x="430" y="444" width="430" height="62" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
 <rect x="430" y="460" width="4" height="30" rx="2" fill="#2866c8"/>
 <text x="450" y="475.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2866c8">Public Application Load Balancer</text>
-<text x="450" y="496.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#53677e">Spans both public subnets</text>
+<text x="450" y="496.6" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#53677e">ACM TLS 1.2/1.3 / HTTP redirects to HTTPS</text>
 <rect x="128" y="636" width="330" height="70" rx="14" fill="#ffffff" stroke="#cdd9e8" stroke-width="1"/>
 <rect x="128" y="652" width="4" height="38" rx="2" fill="#24755f"/>
 <text x="148" y="667.8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#24755f">Private EC2 + Docker</text>
-<text x="148" y="694.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Flask + Gunicorn  /  :8080</text>
+<text x="148" y="694.44" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#53677e">Flask + Gunicorn / encrypted EBS</text>
 <rect x="540" y="636" width="330" height="70" rx="14" fill="#f6fafc" stroke="#81a5c0" stroke-width="1" stroke-dasharray="8 6"/>
 <rect x="540" y="652" width="4" height="38" rx="2" fill="#81a5c0"/>
 <text x="560" y="666.12" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#81a5c0">Second EC2 when needed</text>

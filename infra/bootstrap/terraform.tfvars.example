@@ -1,24 +1,10 @@
-# ==============================================================================
-# Compie Home Task - Bootstrap Environment Configuration Variables
-# ==============================================================================
-# Usage:
-#   1. Copy this file to terraform.tfvars:
-#      Copy-Item terraform.tfvars.example terraform.tfvars
-#   2. Replace github_subject with your GitHub Actions OIDC subject.
-#   3. Run: terraform apply
-# ==============================================================================
-
-# Target AWS region for deployment
 aws_region = "il-central-1"
+project    = "compie"
 
-# Project naming prefix used across all resources and tags
-project = "compie"
+# Use the exact subject shown by your repository. This project uses the ID-based form.
+github_subject = "repo:YOUR_USER@OWNER_ID/YOUR_REPO@REPOSITORY_ID:ref:refs/heads/main"
+# existing_oidc_provider_arn = "arn:aws:iam::ACCOUNT:oidc-provider/token.actions.githubusercontent.com"
 
-# Exact GitHub Actions OIDC subject claim for repository and main branch.
-# Format: repo:<GitHubOwner>/<RepoName>:ref:refs/heads/main
-# IMPORTANT: Must be restricted strictly to 'main' branch without wildcards.
-github_subject = "repo:LiorTal26/Compie-HomeTask:ref:refs/heads/main"
-
-# Optional: ARN of an existing GitHub OIDC provider in this AWS account.
-# Leave empty ("") if you want Terraform to create the OIDC provider automatically.
-existing_oidc_provider_arn = ""
+# Optional: scope Infrastructure CI to the app HTTPS hostname and public zone.
+# https_domain_name    = "compie.example.com"
+# https_hosted_zone_id = "Z_YOUR_PUBLIC_HOSTED_ZONE_ID"

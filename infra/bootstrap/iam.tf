@@ -66,7 +66,7 @@ resource "aws_iam_role" "infrastructure_ci" {
 resource "aws_iam_role_policy" "infrastructure_ci" {
   role = aws_iam_role.infrastructure_ci.id
   policy = jsonencode({
-    Version = "2012-10-17", Statement = [
+    Version = "2012-10-17", Statement = concat([
       { Sid = "NeverReadApplicationSecrets", Effect = "Deny", Action = ["secretsmanager:GetSecretValue", "secretsmanager:BatchGetSecretValue"], Resource = "*" },
       { Sid = "StateBucket", Effect = "Allow", Action = ["s3:ListBucket", "s3:GetBucketLocation"], Resource = aws_s3_bucket.state.arn },
       { Sid = "DevState", Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.state.arn}/dev/terraform.tfstate" },
@@ -108,24 +108,47 @@ resource "aws_iam_role_policy" "infrastructure_ci" {
       { Sid = "Dashboard", Effect = "Allow", Action = ["cloudwatch:GetDashboard", "cloudwatch:PutDashboard", "cloudwatch:DeleteDashboards"], Resource = "arn:aws:cloudwatch::${local.account}:dashboard/${local.prefix}-dashboard" },
       { Sid = "Topic", Effect = "Allow", Action = ["sns:CreateTopic", "sns:DeleteTopic", "sns:GetTopicAttributes", "sns:SetTopicAttributes", "sns:ListTagsForResource", "sns:TagResource", "sns:UntagResource", "sns:Subscribe", "sns:Unsubscribe", "sns:GetSubscriptionAttributes", "sns:SetSubscriptionAttributes"], Resource = "arn:aws:sns:${var.aws_region}:${local.account}:${local.prefix}-alerts*" },
       { Sid = "AlertQueue", Effect = "Allow", Action = ["sqs:CreateQueue", "sqs:DeleteQueue", "sqs:GetQueueAttributes", "sqs:GetQueueUrl", "sqs:SetQueueAttributes", "sqs:ListQueueTags", "sqs:TagQueue", "sqs:UntagQueue"], Resource = "arn:aws:sqs:${var.aws_region}:${local.account}:${local.prefix}-alerts" },
-      {
-        Sid    = "CertificateManager",
-        Effect = "Allow",
-        Action = [
-          "acm:RequestCertificate", "acm:DescribeCertificate", "acm:DeleteCertificate",
-          "acm:AddTagsToCertificate", "acm:ListTagsForCertificate", "acm:GetCertificate"
-        ],
-        Resource = "arn:aws:acm:${var.aws_region}:${local.account}:certificate/*"
-      },
-      {
-        Sid    = "Route53",
-        Effect = "Allow",
-        Action = [
-          "route53:GetHostedZone", "route53:ListResourceRecordSets",
-          "route53:ChangeResourceRecordSets", "route53:GetChange"
-        ],
-        Resource = "*"
-      }
-    ]
+      ], [for statement in [
+        {
+          Sid = "RequestAppCertificate", Effect = "Allow", Action = "acm:RequestCertificate", Resource = "*",
+          Condition = {
+            StringEquals = {
+              "aws:RequestedRegion" = var.aws_region, "aws:RequestTag/Project" = var.project, "acm:ValidationMethod" = "DNS"
+            },
+            "ForAllValues:StringEquals" = { "acm:DomainNames" = [var.https_domain_name] }
+          }
+        },
+        {
+          Sid       = "ManageProjectCertificates", Effect = "Allow",
+          Action    = ["acm:DescribeCertificate", "acm:ListTagsForCertificate", "acm:AddTagsToCertificate", "acm:RemoveTagsFromCertificate", "acm:DeleteCertificate"],
+          Resource  = "arn:aws:acm:${var.aws_region}:${local.account}:certificate/*",
+          Condition = { StringEquals = { "aws:ResourceTag/Project" = var.project, "aws:ResourceTag/Environment" = "dev" } }
+        },
+        {
+          Sid      = "ReadAppHostedZone", Effect = "Allow", Action = ["route53:GetHostedZone", "route53:ListResourceRecordSets"],
+          Resource = "arn:aws:route53:::hostedzone/${var.https_hosted_zone_id}"
+        },
+        {
+          Sid      = "ChangeAppAliasOnly", Effect = "Allow", Action = "route53:ChangeResourceRecordSets",
+          Resource = "arn:aws:route53:::hostedzone/${var.https_hosted_zone_id}",
+          Condition = { "ForAllValues:StringEquals" = {
+            "route53:ChangeResourceRecordSetsNormalizedRecordNames" = [var.https_domain_name],
+            "route53:ChangeResourceRecordSetsRecordTypes"           = ["A"],
+            "route53:ChangeResourceRecordSetsActions"               = ["CREATE", "UPSERT", "DELETE"]
+          } }
+        },
+        {
+          Sid      = "ChangeAppCertificateValidationOnly", Effect = "Allow", Action = "route53:ChangeResourceRecordSets",
+          Resource = "arn:aws:route53:::hostedzone/${var.https_hosted_zone_id}",
+          Condition = {
+            "ForAllValues:StringLike" = { "route53:ChangeResourceRecordSetsNormalizedRecordNames" = ["_*.${var.https_domain_name}"] },
+            "ForAllValues:StringEquals" = {
+              "route53:ChangeResourceRecordSetsRecordTypes" = ["CNAME"],
+              "route53:ChangeResourceRecordSetsActions"     = ["CREATE", "UPSERT", "DELETE"]
+            }
+          }
+        },
+        { Sid = "WaitForAppDnsChanges", Effect = "Allow", Action = "route53:GetChange", Resource = "arn:aws:route53:::change/*" }
+    ] : statement if var.https_domain_name != ""])
   })
 }

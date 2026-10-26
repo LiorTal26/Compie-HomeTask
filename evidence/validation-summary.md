@@ -1,11 +1,11 @@
-# Validation summary — October 25, 2026
+# Validation summary — October 26, 2026
 
 Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
 
 | Check | Result |
 |---|---|
 | Application CI/CD | [Run 40211715134](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) succeeded automatically from a push to `main`: build, unit checks, real DynamoDB Local CRUD, OIDC, ECR push, ASG refresh, and live verification. |
-| Infrastructure CI | [Run 40211715491](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715491) passed formatting, validation, OIDC, backend initialization, and a no-change dev plan. Apply was skipped for this push event. |
+| Infrastructure CI | Initial core plan/apply runs passed. A later plan-only run proposed removing HTTPS because repository DNS inputs were absent; those inputs were corrected and an existing-HTTPS guard added. The final verification run is recorded below. |
 | Live application | `/` and `/health` returned HTTP 200; the health response matched the pushed commit and reported `database: ok`. |
 | Release and persistence | The replacement completed successfully, its target was healthy, and existing demo records remained after replacement. |
 | Private compute | The replacement EC2 instance has no public IP. |
@@ -31,4 +31,14 @@ The public repository contains earlier sanitized snapshots and links to the late
 - The earlier root database comparison succeeded outside the VPC; the resource-policy denial test passed for the non-root operator.
 - Captured alarm messages demonstrate initial ALARM/recovery delivery rather than the later forced-test reason.
 
-The environment remains provisioned. The earlier CI repair added an IAM metadata-read action. The later bonus apply added a scaling policy and dashboard; the approved CI permission update changed one inline policy. Both subsequent CI plan and manual apply passed. The application release remains `8d4597b`; no instance refresh or Terraform destroy was performed during the bonus work.
+The environment remains provisioned. The earlier CI repair added an IAM metadata-read action. The later bonus apply added a scaling policy and dashboard; the approved CI permission update changed one inline policy. Both subsequent CI plan and manual apply passed. The application release remains `8d4597b`. The later EBS update performed a rolling replacement; the current root volume is encrypted. No Terraform destroy was performed.
+
+## HTTPS, encrypted EBS, and PR checks
+
+- Live HTTPS `/` and `/health` returned HTTP 200, with database health `ok`; TLS 1.3 and the hostname were verified, and HTTP returned a 301 redirect to HTTPS.
+- ACM is `ISSUED`. The current healthy instance uses launch-template version 2 and an encrypted root EBS volume.
+- [PR #1](https://github.com/LiorTal26/Compie-HomeTask/pull/1) merged after [read-only Terraform/container checks](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40227492186) passed. Branch protection is not claimed.
+- The later all-zone DNS permission was replaced with the app-only certificate/DNS scope approved by the user. IAM simulations allow the app alias/validation records, deny an unrelated hostname, and explicitly deny application secret-value retrieval.
+- The green [plan-only run 40273788472](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40273788472) proposed six HTTPS deletions because its DNS variables were missing. It did not apply. Repository variables were corrected and the workflow now rejects empty DNS inputs when HTTPS already exists.
+
+New detailed metadata and IAM simulation output from this review are included in the local ZIP only. Existing public demo evidence is retained.

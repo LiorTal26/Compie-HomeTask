@@ -28,3 +28,19 @@ variable "existing_oidc_provider_arn" {
   default     = ""
   description = "ARN of an existing GitHub OIDC provider in the AWS account. Leave empty to let bootstrap create it."
 }
+
+variable "https_domain_name" {
+  type        = string
+  default     = ""
+  description = "Optional app hostname whose certificate and DNS records Infrastructure CI may manage."
+  validation {
+    condition     = (var.https_domain_name == "") == (var.https_hosted_zone_id == "")
+    error_message = "Set both HTTPS variables, or leave both empty."
+  }
+}
+
+variable "https_hosted_zone_id" {
+  type        = string
+  default     = ""
+  description = "Existing public hosted zone for the optional app hostname; other names cannot be changed."
+}
