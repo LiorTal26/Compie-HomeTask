@@ -6,9 +6,9 @@ A small Flask application with server-rendered HTML, DynamoDB storage, and GitHu
 
 The second EC2 represents optional scale-out capacity. [Editable diagram](docs/architecture.svg).
 
-[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) · [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40273788472)
+[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630) · [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968)
 
-Reviewed on **October 26, 2026**; individual evidence files retain their capture timestamps. The application release is `8d4597b`; infrastructure bonuses and live HTTPS were verified on `main`. The temporary AWS environment may be removed after review.
+Reviewed on **October 26, 2026**; individual evidence files retain their capture timestamps. The HTTPS application release and no-change infrastructure plan were verified at `47ad780` on `main`. The temporary AWS environment may be removed after review.
 
 ## Requirements checklist
 
@@ -80,7 +80,7 @@ docker network rm compie-local
 
 ## Deploy to AWS
 
-Prerequisites: Terraform **1.13.5**, AWS CLI v2, Git, a GitHub repository using `main`, and an AWS provisioning identity. The workstation's `compie-operator` profile is read-only and cannot provision, access Terraform state, or destroy. Use your authorized provisioning profile for the commands below. Keep credentials outside the repository.
+Prerequisites: Terraform **1.13.5**, AWS CLI v2, Git, a GitHub repository using `main`, and an AWS provisioning identity. The workstation's `compie-operator` profile is read-only and cannot provision, access Terraform state, or destroy. Use your authorized provisioning profile for the commands below. Keep credentials outside the repository. Copy examples only for a new configuration; preserve existing `terraform.tfvars` files when updating the deployed stack.
 
 ### 1. Bootstrap the account
 
@@ -203,7 +203,8 @@ aws logs tail /compie/dev/instance --since 15m --region il-central-1
 |---|---|
 | Local Docker: `/`, `/health`, non-root runtime | [HTTP results](evidence/docker-local-http.json), [container inspection](evidence/docker-runtime.json) |
 | Commit → running application | [Successful push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [replacement activity](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png); existing DB items survived replacement |
-| Infrastructure plan / apply | [Push plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032), [manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960); subsequent plans found no changes |
+| Infrastructure plan / apply | [Final no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968), [earlier manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960); HTTPS retained with the correct DNS inputs |
+| HTTPS CI/CD release | [Final application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630); database health, commit verification, and encrypted-instance refresh passed |
 | Private networking, IAM, KMS | [Network checks](evidence/network-compute-checks.json), [security checks](evidence/security-checks.json), [database denial test](evidence/database-operator-probe.json) |
 | Usable app / instance logs | [App records](evidence/app-logs.txt), [startup records](evidence/instance-logs.txt) |
 | Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json); initial provisioning transitions, not an injected outage |

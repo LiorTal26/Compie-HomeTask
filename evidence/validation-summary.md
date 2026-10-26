@@ -1,6 +1,6 @@
 # Validation summary — October 26, 2026
 
-Latest deployed application commit: `8d4597bfa0d4dee94a4208f35eb77a92cb073c48`.
+Latest deployed application commit: `47ad780638d8667aa61cbfbc466843cd50155c6c`. Earlier records below retain their original release versions.
 
 | Check | Result |
 |---|---|
@@ -42,3 +42,6 @@ The environment remains provisioned. The earlier CI repair added an IAM metadata
 - The green [plan-only run 40273788472](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40273788472) proposed six HTTPS deletions because its DNS variables were missing. It did not apply. Repository variables were corrected and the workflow now rejects empty DNS inputs when HTTPS already exists.
 
 New detailed metadata and IAM simulation output from this review are included in the local ZIP only. Existing public demo evidence is retained.
+
+
+Final closeout: [Infrastructure run 40277529968](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968) succeeded and reported **No changes**. [Application run 40277762630](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630) then built, tested, pushed and deployed `47ad780` through HTTPS. Independent live checks verified the commit, database health, encrypted AWS-managed-KMS root EBS, private addressing, successful refresh, and preservation of existing demo item IDs. Detailed current metadata and fresh screenshots are in the ZIP only.

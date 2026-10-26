@@ -32,3 +32,6 @@ Screenshots and command output retain resource names, account IDs, and ARNs for 
 The public files retain earlier snapshots. Public CI verification: [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134) at `8d4597b`, plus the [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217331032) and [manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960) at `f535ec4`; all passed.
 
 New detailed AWS snapshots, logs, and item-ID comparisons are supplied only in the local submission ZIP. Its evidence directory overlays these public snapshots.
+
+
+Final CI verification: [Infrastructure no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968) and [HTTPS Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630) passed at `47ad780`. Current additional audit metadata and screenshots are kept only in the local submission ZIP.
