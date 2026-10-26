@@ -1,5 +1,7 @@
 # Validation summary — October 26, 2026
 
+Latest verification: the readability cleanup at `6880be6` passed [Application delivery](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599765) and an [Infrastructure no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599723). HTTPS database health, six previously recorded items, private addressing, and encrypted replacement EBS were verified. Earlier captures below retain their original versions.
+
 Latest deployed application commit: `47ad780638d8667aa61cbfbc466843cd50155c6c`. Earlier records below retain their original release versions.
 
 | Check | Result |
@@ -31,7 +33,7 @@ The public repository contains earlier sanitized snapshots and links to the late
 - The earlier root database comparison succeeded outside the VPC; the resource-policy denial test passed for the non-root operator.
 - Captured alarm messages demonstrate initial ALARM/recovery delivery rather than the later forced-test reason.
 
-The environment remains provisioned. The earlier CI repair added an IAM metadata-read action. The later bonus apply added a scaling policy and dashboard; the approved CI permission update changed one inline policy. Both subsequent CI plan and manual apply passed. The application release remains `8d4597b`. The later EBS update performed a rolling replacement; the current root volume is encrypted. No Terraform destroy was performed.
+The environment remains provisioned. The earlier CI repair added an IAM metadata-read action. The later bonus apply added a scaling policy and dashboard; the approved CI permission update changed one inline policy. Both subsequent CI plan and manual apply passed. Earlier application captures reference `8d4597b`; the current release is listed above. The later EBS update performed a rolling replacement; the current root volume is encrypted. No Terraform destroy was performed.
 
 ## HTTPS, encrypted EBS, and PR checks
 

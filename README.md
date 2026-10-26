@@ -6,9 +6,9 @@ A small Flask application with server-rendered HTML, DynamoDB storage, and GitHu
 
 The second EC2 represents optional scale-out capacity. [Editable diagram](docs/architecture.svg).
 
-[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630) · [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968)
+[Live application (HTTPS)](https://compie.tal-handassa.com) · [Database health](https://compie.tal-handassa.com/health) · [Application release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599765) · [Infrastructure plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599723)
 
-Reviewed on **October 26, 2026**; individual evidence files retain their capture timestamps. The HTTPS application release and no-change infrastructure plan were verified at `47ad780` on `main`. The temporary AWS environment may be removed after review.
+Reviewed on **October 26, 2026**; individual evidence files retain their capture timestamps. The HTTPS application release and no-change infrastructure plan were verified at `6880be6` on `main`. The temporary AWS environment may be removed after review.
 
 ## Requirements checklist
 
@@ -217,9 +217,9 @@ Captured on October 25–26, 2026, in `il-central-1`. Individual files retain th
 | Architecture | [PNG](docs/architecture.png), [editable SVG](docs/architecture.svg) |
 | Local Docker | [HTTP checks](evidence/docker-local-http.json), [runtime inspection](evidence/docker-runtime.json), [local checks](evidence/local-validation.md) |
 | Live application and database | [HTTPS items board](evidence/live-app-dynamodb-proof.png), [DynamoDB write proof](evidence/dynamodb-live-proof.json), [health response](evidence/live-health.json) |
-| Commit → running application | [Push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [final HTTPS release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277762630), [workflow metadata](evidence/workflow-run.json) |
+| Commit → running application | [Push release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40211715134), [final HTTPS release](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599765), [workflow metadata](evidence/workflow-run.json) |
 | ASG capacity and replacement | [ASG overview](evidence/ASG%20PROOF.png), [replacement activity](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png); existing items survived replacement |
-| Terraform | [Bootstrap record](evidence/aws-bootstrap.md), [initial dev apply](evidence/terraform%20apply%20output%20proof.png), [final no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40277529968), [earlier manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960) |
+| Terraform | [Bootstrap record](evidence/aws-bootstrap.md), [initial dev apply](evidence/terraform%20apply%20output%20proof.png), [final no-change plan](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40281599723), [earlier manual apply](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40217381960) |
 | Network and compute | [VPC, routes, security groups, private instances, and healthy targets](evidence/network-compute-checks.json) |
 | Image, configuration, and IAM | [ECR, secret metadata, instance profile, OIDC, and permission checks](evidence/image-config-iam-checks.json) |
 | Encryption and runtime security | [KMS and CI access checks](evidence/security-checks.json); encrypted replacement EBS verified in the ZIP evidence |
