@@ -1,0 +1,426 @@
+{
+  "database": {
+    "Name": "compie-dev-items",
+    "Status": "ACTIVE",
+    "Encryption": {
+      "Status": "ENABLED",
+      "SSEType": "KMS",
+      "KMSMasterKeyArn": "arn:aws:kms:il-central-1:108782097005:key/b64bd3b3-18d3-4cca-b452-c1f838fdcd83"
+    }
+  },
+  "configuration": {
+    "Name": "/compie/dev/app-config",
+    "ARN": "arn:aws:secretsmanager:il-central-1:108782097005:secret:/compie/dev/app-config-d6KRfp",
+    "KmsKeyId": null,
+    "VersionIdsToStages": {
+      "34518057-832b-448b-a224-488d31ec6e13": [
+        "AWSCURRENT"
+      ]
+    }
+  },
+  "database_key": {
+    "Arn": "arn:aws:kms:il-central-1:108782097005:key/b64bd3b3-18d3-4cca-b452-c1f838fdcd83",
+    "KeyId": "b64bd3b3-18d3-4cca-b452-c1f838fdcd83",
+    "KeyManager": "AWS",
+    "KeyState": "Enabled",
+    "KeyUsage": "ENCRYPT_DECRYPT"
+  },
+  "configuration_key": {
+    "Arn": "arn:aws:kms:il-central-1:108782097005:key/9f03842c-68db-4370-b658-dcf6756df22a",
+    "KeyId": "9f03842c-68db-4370-b658-dcf6756df22a",
+    "KeyManager": "AWS",
+    "KeyState": "Enabled",
+    "KeyUsage": "ENCRYPT_DECRYPT"
+  },
+  "log_groups": [
+    {
+      "Name": "/compie/dev/app",
+      "Retention": 7,
+      "StoredBytes": 0,
+      "KmsKeyId": null
+    },
+    {
+      "Name": "/compie/dev/instance",
+      "Retention": 7,
+      "StoredBytes": 0,
+      "KmsKeyId": null
+    }
+  ],
+  "app_streams": {
+    "logStreams": [
+      {
+        "logStreamName": "compie-app/8bf51cf4dc20",
+        "creationTime": 1792945772556,
+        "firstEventTimestamp": 1792945774012,
+        "lastEventTimestamp": 1792947686628,
+        "lastIngestionTime": 1792947687574,
+        "uploadSequenceToken": "49039859690944704768654650664805257344350602090555280489",
+        "arn": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/app:log-stream:compie-app/8bf51cf4dc20",
+        "storedBytes": 0
+      },
+      {
+        "logStreamName": "compie-app/474d40360d2b",
+        "creationTime": 1792938169776,
+        "firstEventTimestamp": 1792938171392,
+        "lastEventTimestamp": 1792945935743,
+        "lastIngestionTime": 1792945935859,
+        "uploadSequenceToken": "49039859690942376340036014290896954862101237379718089779",
+        "arn": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/app:log-stream:compie-app/474d40360d2b",
+        "storedBytes": 0
+      }
+    ],
+    "NextToken": "eyJuZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAyfQ=="
+  },
+  "instance_streams": {
+    "logStreams": [
+      {
+        "logStreamName": "i-0c043d8fec1dcb7b0/service",
+        "creationTime": 1792945770077,
+        "firstEventTimestamp": 1792945765048,
+        "lastEventTimestamp": 1792947600070,
+        "lastIngestionTime": 1792947605079,
+        "uploadSequenceToken": "49039859690944595113991138320805689711192722934594698712",
+        "arn": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/instance:log-stream:i-0c043d8fec1dcb7b0/service",
+        "storedBytes": 0
+      },
+      {
+        "logStreamName": "i-03754e3b267dd4806/service",
+        "creationTime": 1792938165144,
+        "firstEventTimestamp": 1792938160112,
+        "lastEventTimestamp": 1792945913933,
+        "lastIngestionTime": 1792945918948,
+        "uploadSequenceToken": "49039859690942353861461377504819996022297462104030084484",
+        "arn": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/instance:log-stream:i-03754e3b267dd4806/service",
+        "storedBytes": 0
+      },
+      {
+        "logStreamName": "i-0c043d8fec1dcb7b0/bootstrap",
+        "creationTime": 1792945768282,
+        "firstEventTimestamp": 1792945763067,
+        "lastEventTimestamp": 1792945768464,
+        "lastIngestionTime": 1792945773467,
+        "uploadSequenceToken": "49039859690942160484043322719473890890195279571280100627",
+        "arn": "arn:aws:logs:il-central-1:108782097005:log-group:/compie/dev/instance:log-stream:i-0c043d8fec1dcb7b0/bootstrap",
+        "storedBytes": 0
+      }
+    ],
+    "NextToken": "eyJuZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAzfQ=="
+  },
+  "alarm": [
+    {
+      "Name": "compie-dev-no-healthy-targets",
+      "State": "OK",
+      "ActionsEnabled": true,
+      "Metric": "HealthyHostCount",
+      "Statistic": "Minimum",
+      "Period": 60,
+      "EvaluationPeriods": 2,
+      "DatapointsToAlarm": 2,
+      "Threshold": 1.0,
+      "Comparison": "LessThanThreshold",
+      "TreatMissingData": "breaching",
+      "AlarmActions": [
+        "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+      ],
+      "OKActions": [
+        "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+      ],
+      "Dimensions": [
+        {
+          "Name": "TargetGroup",
+          "Value": "targetgroup/compie-dev-app/8162e614afd8d4b4"
+        },
+        {
+          "Name": "LoadBalancer",
+          "Value": "app/compie-dev-alb/045f746927b3561c"
+        }
+      ]
+    }
+  ],
+  "alarm_action_history": {
+    "AlarmHistoryItems": [
+      {
+        "AlarmName": "compie-dev-no-healthy-targets",
+        "AlarmType": "MetricAlarm",
+        "Timestamp": "2026-10-25T16:41:21.609000+02:00",
+        "HistoryItemType": "Action",
+        "HistorySummary": "Successfully executed action arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "ActionState": "Succeeded",
+        "NotificationResource": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "Error": null,
+        "Notification": {
+          "AlarmName": "compie-dev-no-healthy-targets",
+          "NewStateValue": "OK",
+          "OldStateValue": "ALARM",
+          "NewStateReason": "Threshold Crossed: 2 out of the last 2 datapoints [1.0 (25/10/26 14:38:00), 1.0 (25/10/26 14:37:00)] were not less than the threshold (1.0) (minimum 1 datapoint for ALARM -> OK transition).",
+          "StateChangeTime": "2026-10-25T14:41:21.575+0000"
+        }
+      },
+      {
+        "AlarmName": "compie-dev-no-healthy-targets",
+        "AlarmType": "MetricAlarm",
+        "Timestamp": "2026-10-25T16:39:34.181000+02:00",
+        "HistoryItemType": "Action",
+        "HistorySummary": "Successfully executed action arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "ActionState": "Succeeded",
+        "NotificationResource": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "Error": null,
+        "Notification": {
+          "AlarmName": "compie-dev-no-healthy-targets",
+          "NewStateValue": "ALARM",
+          "OldStateValue": "OK",
+          "NewStateReason": "Assignment notification test",
+          "StateChangeTime": "2026-10-25T14:39:34.147+0000"
+        }
+      },
+      {
+        "AlarmName": "compie-dev-no-healthy-targets",
+        "AlarmType": "MetricAlarm",
+        "Timestamp": "2026-10-25T15:55:50.405000+02:00",
+        "HistoryItemType": "Action",
+        "HistorySummary": "Successfully executed action arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "ActionState": "Succeeded",
+        "NotificationResource": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "Error": null,
+        "Notification": {
+          "AlarmName": "compie-dev-no-healthy-targets",
+          "NewStateValue": "OK",
+          "OldStateValue": "ALARM",
+          "NewStateReason": "Threshold Crossed: 1 out of the last 2 datapoints [1.0 (25/10/26 13:52:00)] was not less than the threshold (1.0) (minimum 1 datapoint for ALARM -> OK transition).",
+          "StateChangeTime": "2026-10-25T13:55:50.359+0000"
+        }
+      },
+      {
+        "AlarmName": "compie-dev-no-healthy-targets",
+        "AlarmType": "MetricAlarm",
+        "Timestamp": "2026-10-25T15:50:50.399000+02:00",
+        "HistoryItemType": "Action",
+        "HistorySummary": "Successfully executed action arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "ActionState": "Succeeded",
+        "NotificationResource": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+        "Error": null,
+        "Notification": {
+          "AlarmName": "compie-dev-no-healthy-targets",
+          "NewStateValue": "ALARM",
+          "OldStateValue": "INSUFFICIENT_DATA",
+          "NewStateReason": "Threshold Crossed: no datapoints were received for 2 periods and 2 missing datapoints were treated as [Breaching].",
+          "StateChangeTime": "2026-10-25T13:50:50.357+0000"
+        }
+      }
+    ]
+  },
+  "topic": {
+    "Attributes": {
+      "Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"CloudWatchAlarms\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudwatch.amazonaws.com\"},\"Action\":\"sns:Publish\",\"Resource\":\"arn:aws:sns:il-central-1:108782097005:compie-dev-alerts\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"108782097005\"},\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:cloudwatch:il-central-1:108782097005:alarm:compie-dev-no-healthy-targets\"}}}]}",
+      "LambdaSuccessFeedbackSampleRate": "0",
+      "Owner": "108782097005",
+      "SubscriptionsPending": "0",
+      "TopicArn": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts",
+      "EffectiveDeliveryPolicy": "{\"http\":{\"defaultHealthyRetryPolicy\":{\"minDelayTarget\":20,\"maxDelayTarget\":20,\"numRetries\":3,\"numMaxDelayRetries\":0,\"numNoDelayRetries\":0,\"numMinDelayRetries\":0,\"backoffFunction\":\"linear\"},\"disableSubscriptionOverrides\":false,\"defaultRequestPolicy\":{\"headerContentType\":\"text/plain; charset=UTF-8\"}}}",
+      "FirehoseSuccessFeedbackSampleRate": "0",
+      "SubscriptionsConfirmed": "1",
+      "SQSSuccessFeedbackSampleRate": "0",
+      "HTTPSuccessFeedbackSampleRate": "0",
+      "ApplicationSuccessFeedbackSampleRate": "0",
+      "DisplayName": "",
+      "SubscriptionsDeleted": "0"
+    }
+  },
+  "subscription": {
+    "Subscriptions": [
+      {
+        "SubscriptionArn": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts:9f480f9f-de0f-4d93-837d-9bad29df4d17",
+        "Owner": "108782097005",
+        "Protocol": "sqs",
+        "Endpoint": "arn:aws:sqs:il-central-1:108782097005:compie-dev-alerts",
+        "TopicArn": "arn:aws:sns:il-central-1:108782097005:compie-dev-alerts"
+      }
+    ]
+  },
+  "queue": {
+    "Attributes": {
+      "QueueArn": "arn:aws:sqs:il-central-1:108782097005:compie-dev-alerts",
+      "Policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sns.amazonaws.com\"},\"Action\":\"sqs:SendMessage\",\"Resource\":\"arn:aws:sqs:il-central-1:108782097005:compie-dev-alerts\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:sns:il-central-1:108782097005:compie-dev-alerts\"}}}]}",
+      "SqsManagedSseEnabled": "true",
+      "MessageRetentionPeriod": "86400",
+      "ApproximateNumberOfMessages": "4"
+    }
+  },
+  "app_log_samples": [
+    {
+      "stream": "compie-app/8bf51cf4dc20",
+      "events": [
+        {
+          "timestamp": 1792948854507,
+          "message": "[2026-10-25 17:20:54,507] INFO in app: {\"timestamp\": \"2026-10-25T17:20:54.507207+00:00\", \"event\": \"request\", \"requestId\": \"77c66b1c-f271-4a7a-a607-0ebcb59bee16\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948857581
+        },
+        {
+          "timestamp": 1792948869300,
+          "message": "[2026-10-25 17:21:09,299] INFO in app: {\"timestamp\": \"2026-10-25T17:21:09.299721+00:00\", \"event\": \"request\", \"requestId\": \"89667e8e-4836-4ce1-861d-b708e86aeb49\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948872575
+        },
+        {
+          "timestamp": 1792948869523,
+          "message": "[2026-10-25 17:21:09,523] INFO in app: {\"timestamp\": \"2026-10-25T17:21:09.523051+00:00\", \"event\": \"request\", \"requestId\": \"a09eb1af-4058-44ef-91b2-6d492e6cccdb\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948872575
+        },
+        {
+          "timestamp": 1792948871140,
+          "message": "[2026-10-25 17:21:11,140] INFO in app: {\"timestamp\": \"2026-10-25T17:21:11.140231+00:00\", \"event\": \"request\", \"requestId\": \"1b82ae4f-31f0-4987-aaa7-77dda2354327\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948872575
+        }
+      ],
+      "error": null
+    },
+    {
+      "stream": "compie-app/474d40360d2b",
+      "events": [
+        {
+          "timestamp": 1792945935341,
+          "message": "[2026-10-25 16:32:15 +0000] [1] [INFO] Handling signal: term",
+          "ingestionTime": 1792945935859
+        },
+        {
+          "timestamp": 1792945935343,
+          "message": "[2026-10-25 16:32:15 +0000] [8] [INFO] Worker exiting (pid: 8)",
+          "ingestionTime": 1792945935859
+        },
+        {
+          "timestamp": 1792945935343,
+          "message": "[2026-10-25 16:32:15 +0000] [7] [INFO] Worker exiting (pid: 7)",
+          "ingestionTime": 1792945935859
+        },
+        {
+          "timestamp": 1792945935743,
+          "message": "[2026-10-25 16:32:15 +0000] [1] [INFO] Shutting down: Master",
+          "ingestionTime": 1792945935859
+        }
+      ],
+      "error": null
+    }
+  ],
+  "instance_log_samples": [
+    {
+      "stream": "i-0c043d8fec1dcb7b0/service",
+      "events": [
+        {
+          "timestamp": 1792948859070,
+          "message": "[2026-10-25 17:20:54,507] INFO in app: {\"timestamp\": \"2026-10-25T17:20:54.507207+00:00\", \"event\": \"request\", \"requestId\": \"77c66b1c-f271-4a7a-a607-0ebcb59bee16\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948859674
+        },
+        {
+          "timestamp": 1792948869692,
+          "message": "[2026-10-25 17:21:09,299] INFO in app: {\"timestamp\": \"2026-10-25T17:21:09.299721+00:00\", \"event\": \"request\", \"requestId\": \"89667e8e-4836-4ce1-861d-b708e86aeb49\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948874705
+        },
+        {
+          "timestamp": 1792948871195,
+          "message": "[2026-10-25 17:21:09,523] INFO in app: {\"timestamp\": \"2026-10-25T17:21:09.523051+00:00\", \"event\": \"request\", \"requestId\": \"a09eb1af-4058-44ef-91b2-6d492e6cccdb\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948874705
+        },
+        {
+          "timestamp": 1792948876070,
+          "message": "[2026-10-25 17:21:11,140] INFO in app: {\"timestamp\": \"2026-10-25T17:21:11.140231+00:00\", \"event\": \"request\", \"requestId\": \"1b82ae4f-31f0-4987-aaa7-77dda2354327\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 5, \"version\": \"8d4597bfa0d4dee94a4208f35eb77a92cb073c48\"}",
+          "ingestionTime": 1792948881085
+        }
+      ],
+      "error": null
+    },
+    {
+      "stream": "i-03754e3b267dd4806/service",
+      "events": [
+        {
+          "timestamp": 1792945898932,
+          "message": "[2026-10-25 16:31:34,549] INFO in app: {\"timestamp\": \"2026-10-25T16:31:34.549750+00:00\", \"event\": \"request\", \"requestId\": \"7c9e11b3-64ed-4752-a0e4-5f5e761dcaa1\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 4, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}",
+          "ingestionTime": 1792945899643
+        },
+        {
+          "timestamp": 1792945905933,
+          "message": "[2026-10-25 16:31:41,366] INFO in app: {\"timestamp\": \"2026-10-25T16:31:41.366346+00:00\", \"event\": \"request\", \"requestId\": \"923bc97f-fb67-40b9-94a2-547724a1093d\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 4, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}",
+          "ingestionTime": 1792945910949
+        },
+        {
+          "timestamp": 1792945909666,
+          "message": "[2026-10-25 16:31:49,184] INFO in app: {\"timestamp\": \"2026-10-25T16:31:49.184333+00:00\", \"event\": \"request\", \"requestId\": \"8651be5d-1ed2-43eb-88aa-d5ade33feadc\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 3, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}",
+          "ingestionTime": 1792945910949
+        },
+        {
+          "timestamp": 1792945913933,
+          "message": "[2026-10-25 16:31:49,563] INFO in app: {\"timestamp\": \"2026-10-25T16:31:49.563050+00:00\", \"event\": \"request\", \"requestId\": \"54e643a0-d875-4877-802d-65d716eb6fe7\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"durationMs\": 4, \"version\": \"31899f1b75d45c4ed14d2f5ef674c5d4bc9cc3c1\"}",
+          "ingestionTime": 1792945918948
+        }
+      ],
+      "error": null
+    }
+  ],
+  "verified_at_utc": "2026-10-25T17:21:31.018683+00:00",
+  "secret_values_retrieved": false,
+  "notification_delivery_evidence": {
+    "alarm": "evidence/alert-alarm.json",
+    "recovery": "evidence/alert-recovery.json",
+    "scope": "Previously received SQS messages for initial provisioning ALARM and recovery; no outage forced during this check."
+  },
+  "instance_startup_log_samples": [
+    {
+      "stream": "i-0c043d8fec1dcb7b0/bootstrap",
+      "events": [
+        {
+          "timestamp": 1792945763068,
+          "message": "Configuration validation succeeded",
+          "ingestionTime": 1792945768447
+        },
+        {
+          "timestamp": 1792945763068,
+          "message": "amazon-cloudwatch-agent has already been stopped",
+          "ingestionTime": 1792945768447
+        },
+        {
+          "timestamp": 1792945763068,
+          "message": "Created symlink /etc/systemd/system/multi-user.target.wants/amazon-cloudwatch-agent.service \u2192 /etc/systemd/system/amazon-cloudwatch-agent.service.",
+          "ingestionTime": 1792945768447
+        },
+        {
+          "timestamp": 1792945763068,
+          "message": "Created symlink /etc/systemd/system/multi-user.target.wants/compie-app.service \u2192 /etc/systemd/system/compie-app.service.",
+          "ingestionTime": 1792945768447
+        },
+        {
+          "timestamp": 1792945768464,
+          "message": "Application service installed; inspect /var/log/compie-service.log and CloudWatch for startup.",
+          "ingestionTime": 1792945773467
+        }
+      ]
+    },
+    {
+      "stream": "i-0c043d8fec1dcb7b0/cloud-init",
+      "events": [
+        {
+          "timestamp": 1792945763063,
+          "message": "amazon-cloudwatch-agent has already been stopped",
+          "ingestionTime": 1792945768418
+        },
+        {
+          "timestamp": 1792945763063,
+          "message": "Created symlink /etc/systemd/system/multi-user.target.wants/amazon-cloudwatch-agent.service \u2192 /etc/systemd/system/amazon-cloudwatch-agent.service.",
+          "ingestionTime": 1792945768418
+        },
+        {
+          "timestamp": 1792945763063,
+          "message": "Created symlink /etc/systemd/system/multi-user.target.wants/compie-app.service \u2192 /etc/systemd/system/compie-app.service.",
+          "ingestionTime": 1792945768418
+        },
+        {
+          "timestamp": 1792945763063,
+          "message": "Application service installed; inspect /var/log/compie-service.log and CloudWatch for startup.",
+          "ingestionTime": 1792945768418
+        },
+        {
+          "timestamp": 1792945768439,
+          "message": "Cloud-init v. 22.2.2 finished at Sun, 25 Oct 2026 16:29:22 +0000. Datasource DataSourceEc2.  Up 77.18 seconds",
+          "ingestionTime": 1792945773443
+        }
+      ]
+    }
+  ]
+}

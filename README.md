@@ -228,6 +228,7 @@ Captured on October 25–26, 2026, in `il-central-1`. Individual files retain th
 | Local operator | [Scoped read-only role setup](evidence/operator-setup.json) |
 | Application logs | [Request records](evidence/app-logs.txt), [runtime log delivery](evidence/app-runtime-log-proof.json) |
 | Instance logs | [CloudWatch startup records](evidence/instance-logs.txt) |
+| Dashboard and metrics | [CloudWatch Dashboard screenshot](evidence/cloudwatch-dashboard.png), [Monitoring report](evidence/logging-encryption-monitoring.md) |
 | Alarm → SNS → SQS | [Received ALARM](evidence/alert-alarm.json), [received recovery](evidence/alert-recovery.json) |
 | PR checks | [PR #1](https://github.com/LiorTal26/Compie-HomeTask/pull/1), [successful validation run](https://github.com/LiorTal26/Compie-HomeTask/actions/runs/40227492186) |
 
@@ -241,6 +242,8 @@ Public snapshots captured during the assignment; the ZIP contains the latest app
 ![Live HTTPS app on custom domain with items verified in DynamoDB](evidence/live-app-dynamodb-proof.png)
 
 ![Application served through the public ALB](evidence/live%20app%20running%20from%20ec2%20proof.png)
+
+![CloudWatch Dashboard showing healthy host metrics, CPU, DynamoDB, and alarm threshold](evidence/cloudwatch-dashboard.png)
 
 ![ASG replacement: launch the new instance before terminating the previous one](evidence/ASG%20REPLACMENT%20PROOF%20FROM%20CD.png)
 
