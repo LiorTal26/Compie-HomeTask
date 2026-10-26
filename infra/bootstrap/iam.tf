@@ -107,7 +107,25 @@ resource "aws_iam_role_policy" "infrastructure_ci" {
       { Sid = "Alarms", Effect = "Allow", Action = ["cloudwatch:PutMetricAlarm", "cloudwatch:DeleteAlarms", "cloudwatch:DescribeAlarms", "cloudwatch:ListTagsForResource", "cloudwatch:TagResource", "cloudwatch:UntagResource"], Resource = "arn:aws:cloudwatch:${var.aws_region}:${local.account}:alarm:${local.prefix}-*" },
       { Sid = "Dashboard", Effect = "Allow", Action = ["cloudwatch:GetDashboard", "cloudwatch:PutDashboard", "cloudwatch:DeleteDashboards"], Resource = "arn:aws:cloudwatch::${local.account}:dashboard/${local.prefix}-dashboard" },
       { Sid = "Topic", Effect = "Allow", Action = ["sns:CreateTopic", "sns:DeleteTopic", "sns:GetTopicAttributes", "sns:SetTopicAttributes", "sns:ListTagsForResource", "sns:TagResource", "sns:UntagResource", "sns:Subscribe", "sns:Unsubscribe", "sns:GetSubscriptionAttributes", "sns:SetSubscriptionAttributes"], Resource = "arn:aws:sns:${var.aws_region}:${local.account}:${local.prefix}-alerts*" },
-      { Sid = "AlertQueue", Effect = "Allow", Action = ["sqs:CreateQueue", "sqs:DeleteQueue", "sqs:GetQueueAttributes", "sqs:GetQueueUrl", "sqs:SetQueueAttributes", "sqs:ListQueueTags", "sqs:TagQueue", "sqs:UntagQueue"], Resource = "arn:aws:sqs:${var.aws_region}:${local.account}:${local.prefix}-alerts" }
+      { Sid = "AlertQueue", Effect = "Allow", Action = ["sqs:CreateQueue", "sqs:DeleteQueue", "sqs:GetQueueAttributes", "sqs:GetQueueUrl", "sqs:SetQueueAttributes", "sqs:ListQueueTags", "sqs:TagQueue", "sqs:UntagQueue"], Resource = "arn:aws:sqs:${var.aws_region}:${local.account}:${local.prefix}-alerts" },
+      {
+        Sid    = "CertificateManager",
+        Effect = "Allow",
+        Action = [
+          "acm:RequestCertificate", "acm:DescribeCertificate", "acm:DeleteCertificate",
+          "acm:AddTagsToCertificate", "acm:ListTagsForCertificate", "acm:GetCertificate"
+        ],
+        Resource = "arn:aws:acm:${var.aws_region}:${local.account}:certificate/*"
+      },
+      {
+        Sid    = "Route53",
+        Effect = "Allow",
+        Action = [
+          "route53:GetHostedZone", "route53:ListResourceRecordSets",
+          "route53:ChangeResourceRecordSets", "route53:GetChange"
+        ],
+        Resource = "*"
+      }
     ]
   })
 }
